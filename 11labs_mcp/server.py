@@ -2,18 +2,15 @@ import os
 import base64
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import types
 from mcp.server.fastmcp import FastMCP
 from mcp.types import (
     TextContent,
     EmbeddedResource,
     BlobResourceContents,
     CallToolResult,
-    ErrorData,
 )
 from elevenlabs.client import ElevenLabs
 from elevenlabs import Voice
-from typing import Literal, Optional
 from datetime import datetime
 
 load_dotenv()
