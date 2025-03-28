@@ -2,10 +2,19 @@ import os
 import base64
 from pathlib import Path
 from dotenv import load_dotenv
+from fastapi import types
 from mcp.server.fastmcp import FastMCP
-from mcp.types import TextContent, EmbeddedResource, BlobResourceContents, Tool
+from mcp.types import (
+    TextContent,
+    EmbeddedResource,
+    BlobResourceContents,
+    CallToolResult,
+    ErrorData,
+)
 from elevenlabs.client import ElevenLabs
 from elevenlabs import Voice
+from typing import Literal, Optional
+from datetime import datetime
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -15,23 +24,54 @@ if not api_key:
 client = ElevenLabs(api_key=api_key)
 mcp = FastMCP("ElevenLabs")
 
+
+def make_error(error_text: str) -> CallToolResult:
+    return CallToolResult(
+        is_error=True,
+        content=[TextContent(type="text", text=error_text)],
+    )
+
+
+def is_file_writeable(path: Path) -> bool:
+    if path.exists():
+        return os.access(path, os.W_OK)
+    parent_dir = path.parent
+    return os.access(parent_dir, os.W_OK)
+
+
 @mcp.tool(description="Convert text to speech using specified voice ID")
-def text_to_speech(text: str, voice_id: str, file_path: str):
-    """Convert text to speech using specified voice ID.
+def text_to_speech(
+    text: str,
+    voice_id: str = "",
+    output_directory: str = "",
+):
+    """Convert text to speech with a given voice and save the output audio file to a given directory.
 
     Args:
-        text: The text to convert to speech
-        voice_id: The ID of the voice to use, if not provided uses first available voice
-        file_path: Optional path to save the audio file, defaults to audio.mp3
+        text (str): The text to convert to speech
+        voice_id (str, optional): The ID of the voice to use, if not provided uses first available voice
+        output_path (str, optional): Directory where files should be saved.
+            Defaults to $HOME/Desktop if not provided.
 
     Returns:
         List containing text content and audio data as embedded resource
     """
-    if voice_id is None:
-        voices = client.voices.get_all()
-        voice_id = voices.voices[0].voice_id if voices.voices else None
-        if voice_id is None:
-            raise ValueError("No voices available")
+    voices = client.voices.get_all()
+    voice_ids = [voice.voice_id for voice in voices.voices]
+    if len(voice_ids) == 0:
+        return make_error("No voices found")
+    if voice_id == "":
+        voice_id = voice_ids[0]
+    elif voice_id not in voice_ids:
+        return make_error(f"Voice with id: {voice_id} does not exist.")
+    if output_directory == "":
+        output_path = Path.home() / "Desktop"
+    else:
+        output_path = Path(output_directory)
+    if not is_file_writeable(output_path):
+        return make_error(f"Directory ({output_path}) is not writeable")
+
+    output_file_name = f"tts_{text[:5]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
 
     audio_data = client.text_to_speech.convert(
         text=text,
@@ -41,39 +81,14 @@ def text_to_speech(text: str, voice_id: str, file_path: str):
     )
     audio_bytes = b"".join(audio_data)
 
-    if file_path:
-        if os.path.isabs(file_path):
-            output_path = file_path
-        else:
-            downloads_dir = os.path.expanduser("~/Downloads")
-            output_path = os.path.join(downloads_dir, file_path)
-    else:
-        downloads_dir = os.path.expanduser("~/Downloads")
-        output_path = os.path.join(downloads_dir, "audio.mp3")
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "wb") as f:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path / output_file_name, "wb") as f:
         f.write(audio_bytes)
 
-    audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
-    filename = Path(output_path).name
-    resource_uri = f"audio://{filename}"
-
-    return [
-        TextContent(
-            type="text",
-            text=f"Audio generation successful. File saved as: {output_path}",
-        ),
-        EmbeddedResource(
-            type="resource",
-            resource=BlobResourceContents(
-                uri=resource_uri,
-                name=filename,
-                blob=audio_base64,
-                mimeType="audio/mpeg",
-            ),
-        ),
-    ]
+    return TextContent(
+        type="text",
+        text=f"Audio generation successful. File saved as: {output_path / output_file_name}",
+    )
 
 
 @mcp.tool(description="List all available voices")
@@ -88,7 +103,7 @@ def list_voices() -> TextContent:
         f"- {voice.name} (ID: {voice.voice_id}, Category: {voice.category})"
         for voice in response.voices
     )
-    return TextContent(type="text", text=f"Available voices:\n{voice_list}")
+    return TextContent(type="text", text=f"Available voices: \n{voice_list}")
 
 
 @mcp.resource("voices://list")
@@ -109,7 +124,9 @@ def get_voice(voice_id: str) -> Voice:
 
 
 @mcp.tool(description="Clone a voice using provided audio files")
-def voice_clone(name: str, files: list[str], description: str | None = None) -> TextContent:
+def voice_clone(
+    name: str, files: list[str], description: str | None = None
+) -> TextContent:
     voice = client.clone(name=name, description=description, files=files)
 
     return TextContent(
@@ -127,7 +144,9 @@ def voice_clone(name: str, files: list[str], description: str | None = None) -> 
 
 
 @mcp.tool(description="Transcribe speech from an audio file")
-def speech_to_text(file_path: str, language_code: str = "eng", diarize=False) -> TextContent:
+def speech_to_text(
+    file_path: str, language_code: str = "eng", diarize=False
+) -> TextContent:
     """Transcribe speech from an audio file using ElevenLabs API.
 
     Args:
@@ -148,11 +167,17 @@ def speech_to_text(file_path: str, language_code: str = "eng", diarize=False) ->
         tag_audio_events=True,
     )
 
+    if diarize:
+        return TextContent(
+            type="text", text=f"Diarized transcription:\n{transcription.words}"
+        )
     return TextContent(type="text", text=f"Transcription:\n{transcription.text}")
 
 
 @mcp.tool(description="Convert text description to sound effects")
-def text_to_sound_effects(text: str, duration_seconds: float, file_path: str) -> list[TextContent | EmbeddedResource]:
+def text_to_sound_effects(
+    text: str, duration_seconds: float, file_path: str
+) -> list[TextContent | EmbeddedResource]:
     audio_data = client.text_to_sound_effects.convert(
         text=text,
         output_format="mp3_44100_128",
@@ -192,7 +217,9 @@ def text_to_sound_effects(text: str, duration_seconds: float, file_path: str) ->
 
 
 @mcp.tool(description="Isolate audio from a file")
-def isolate_audio(input_file_path: str, output_file_path: str) -> list[TextContent | EmbeddedResource]:
+def isolate_audio(
+    input_file_path: str, output_file_path: str
+) -> list[TextContent | EmbeddedResource]:
     if not os.path.exists(input_file_path):
         raise ValueError(f"Input file not found: {input_file_path}")
 
@@ -233,13 +260,12 @@ def isolate_audio(input_file_path: str, output_file_path: str) -> list[TextConte
     ]
 
 
-@mcp.tool(description="Check the current subscription status. Could be used to measure the usage of the API.")
+@mcp.tool(
+    description="Check the current subscription status. Could be used to measure the usage of the API."
+)
 def check_subscription() -> TextContent:
     subscription = client.user.get_subscription()
-    return TextContent(
-        type="text",
-        text=f"{subscription.model_dump_json(indent=2)}"
-    )
+    return TextContent(type="text", text=f"{subscription.model_dump_json(indent=2)}")
 
 
 if __name__ == "__main__":

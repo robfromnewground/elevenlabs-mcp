@@ -2,20 +2,22 @@
 
 [![smithery badge](https://smithery.ai/badge/@jacekduszenko/11labs-mcp)](https://smithery.ai/server/@jacekduszenko/11labs-mcp)
 
-A Model Context Protocol (MCP) server that enables interaction with Eleven Labs' powerful text-to-speech and audio processing APIs. This server allows Claude and other AI assistants to generate speech, clone voices, transcribe audio, and more.
+Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and other MCP compatible clients to generate speech, clone voices, transcribe audio, and more.
 
 <a href="https://glama.ai/mcp/servers/11labs-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/11labs-mcp/badge" alt="Eleven Labs MCP server" />
 </a>
 
+
+This server can be used with various  and more.
+
 ## Quick Start
 
 1. Get your API key from [Eleven Labs](https://elevenlabs.io/). You'll need an account to access the API.
 
-2. Add this configuration to your Claude Desktop config file:
-
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+2. Add this configuration to your MCP Client configuration file. For Claude Desktop the file is located in different directories depending on OS: 
+- **On Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+- **On macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
 {
@@ -40,17 +42,17 @@ A Model Context Protocol (MCP) server that enables interaction with Eleven Labs'
 }
 ```
 
-3. Restart Claude Desktop
+3. Restart the MCP client.
 
-That's it! Claude can now interact with Eleven Labs through these tools:
+That's it! Your MCP client can now interact with Eleven Labs through these tools:
 
 - `text_to_speech`: Convert text to speech using a specified voice
-- `list_voices`: Get a list of all available voices
 - `voice_clone`: Clone a voice using provided audio files
 - `speech_to_text`: Transcribe speech from an audio file
 - `text_to_sound_effects`: Generate sound effects from text descriptions
 - `isolate_audio`: Isolate audio from a file
 - `check_subscription`: Check your Eleven Labs subscription status
+- `list_voices`: Get a list of all available voices
 
 ## Example Usage
 
@@ -60,7 +62,7 @@ Try asking Claude:
 - "Can you transcribe this audio file for me?"
 - "Generate some rain sound effects"
 
-## Development
+## Contributing
 
 If you want to contribute or run from source:
 
@@ -102,10 +104,6 @@ python -m 11labs_mcp.server
 
 ## Troubleshooting
 
-Logs can be found at:
+Logs when running with Claude Desktop can be found at:
 - **Windows**: `%APPDATA%\Claude\logs\mcp-server-elevenlabs.log`
 - **macOS**: `~/Library/Logs/Claude/mcp-server-elevenlabs.log`
-
-## License
-
-MIT 
