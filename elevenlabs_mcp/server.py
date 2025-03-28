@@ -7,11 +7,11 @@ from mcp.types import (
     TextContent,
     EmbeddedResource,
     BlobResourceContents,
-    CallToolResult,
 )
 from elevenlabs.client import ElevenLabs
-from elevenlabs import Voice
 from datetime import datetime
+from elevenlabs_mcp.model import McpVoice
+from elevenlabs_mcp.utils import is_file_writeable, make_error
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -22,21 +22,6 @@ client = ElevenLabs(api_key=api_key)
 mcp = FastMCP("ElevenLabs")
 
 
-def make_error(error_text: str) -> CallToolResult:
-    return CallToolResult(
-        is_error=True,
-        content=[TextContent(type="text", text=error_text)],
-    )
-
-
-def is_file_writeable(path: Path) -> bool:
-    if path.exists():
-        return os.access(path, os.W_OK)
-    parent_dir = path.parent
-    return os.access(parent_dir, os.W_OK)
-
-
-@mcp.tool(description="Convert text to speech using specified voice ID")
 def text_to_speech(
     text: str,
     voice_id: str = "",
@@ -89,35 +74,37 @@ def text_to_speech(
 
 
 @mcp.tool(description="List all available voices")
-def list_voices() -> TextContent:
+def list_voices() -> list[McpVoice]:
     """List all available voices.
 
     Returns:
         A formatted list of available voices with their IDs and names
     """
     response = client.voices.get_all()
-    voice_list = "\n".join(
-        f"- {voice.name} (ID: {voice.voice_id}, Category: {voice.category})"
+    return [
+        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
         for voice in response.voices
-    )
-    return TextContent(type="text", text=f"Available voices: \n{voice_list}")
+    ]
 
 
 @mcp.resource("voices://list")
-def get_voices() -> list[Voice]:
+def get_voices() -> list[McpVoice]:
     """Get a list of all available voices."""
     response = client.voices.get_all()
-    return response.voices
+    return [
+        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
+        for voice in response.voices
+    ]
 
 
 @mcp.resource("voice://{voice_id}")
-def get_voice(voice_id: str) -> Voice:
+def get_voice(voice_id: str) -> McpVoice:
     """Get details of a specific voice."""
     response = client.voices.get_all()
     for voice in response.voices:
         if voice.voice_id == voice_id:
-            return voice
-    raise ValueError(f"Voice with ID {voice_id} not found")
+            return McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
+    raise f"Voice with id: {voice_id} not found"
 
 
 @mcp.tool(description="Clone a voice using provided audio files")

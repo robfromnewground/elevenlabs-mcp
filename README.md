@@ -1,11 +1,11 @@
 # Eleven Labs MCP Server
 
-[![smithery badge](https://smithery.ai/badge/@jacekduszenko/11labs-mcp)](https://smithery.ai/server/@jacekduszenko/11labs-mcp)
+[![smithery badge](https://smithery.ai/badge/@jacekduszenko/elevenlabs-mcp)](https://smithery.ai/server/@jacekduszenko/elevenlabs-mcp)
 
 Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and other MCP compatible clients to generate speech, clone voices, transcribe audio, and more.
 
-<a href="https://glama.ai/mcp/servers/11labs-mcp">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/11labs-mcp/badge" alt="Eleven Labs MCP server" />
+<a href="https://glama.ai/mcp/servers/elevenlabs-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/elevenlabs-mcp/badge" alt="Eleven Labs MCP server" />
 </a>
 
 
@@ -32,7 +32,7 @@ This server can be used with various  and more.
         "mcp[cli]",
         "mcp",
         "run",
-        "11labs_mcp/server.py"
+        "elevenlabs_mcp/server.py"
       ],
       "env": {
         "ELEVENLABS_API_KEY": "your_api_key_here"
@@ -68,8 +68,8 @@ If you want to contribute or run from source:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/jacekduszenko/11labs-mcp.git
-cd 11labs-mcp
+git clone https://github.com/jacekduszenko/elevenlabs-mcp.git
+cd elevenlabs-mcp
 ```
 
 2. Create a virtual environment and install dependencies:
@@ -85,10 +85,9 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
-4. Run the server:
-```bash
-python -m 11labs_mcp.server
-```
+4. Install the server in Claude Desktop: `fastmcp install server.py`.
+
+5. Debug and test locally with MCP Inspector: `fastmcp dev server.py`
 
 ## Requirements
 
