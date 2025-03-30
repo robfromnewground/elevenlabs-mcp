@@ -32,12 +32,14 @@ Official Eleven Labs Model Context Protocol (MCP) server that enables interactio
         "elevenlabs_mcp/server.py"
       ],
       "env": {
-        "ELEVENLABS_API_KEY": "your_api_key_here"
+        "ELEVENLABS_API_KEY": "your_api_key_here",
+        "ELEVENLABS_MCP_BASE_PATH": "~/Documents" // optional base path for output files
       }
     }
   }
 }
 ```
+Output files will be saved by default in `$HOME/Desktop` directory. All tools accept an optional `output_directory` to set the output path. If `ELEVENLABS_MCP_BASE_PATH` is not set, the `output_directory` must be an *absolute* path. If the environment variable is set, relative paths will be used to save outputs in directory specified by `ELEVENLABS_MCP_BASE_PATH`.
 
 3. Restart the MCP client.
 

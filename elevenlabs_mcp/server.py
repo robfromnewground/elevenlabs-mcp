@@ -9,12 +9,13 @@ from mcp.types import (
     BlobResourceContents,
 )
 from elevenlabs.client import ElevenLabs
-from datetime import datetime
 from elevenlabs_mcp.model import McpVoice
-from elevenlabs_mcp.utils import is_file_writeable, make_error
+from elevenlabs_mcp.utils import make_error, make_output_path, make_output_file
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
+base_path = os.getenv("ELEVENLABS_MCP_BASE_PATH")
+
 if not api_key:
     raise ValueError("ELEVENLABS_API_KEY environment variable is required")
 
@@ -44,19 +45,14 @@ def text_to_speech(
     voices = client.voices.get_all()
     voice_ids = [voice.voice_id for voice in voices.voices]
     if len(voice_ids) == 0:
-        return make_error("No voices found")
+        make_error("No voices found")
     if voice_id == "":
         voice_id = voice_ids[0]
     elif voice_id not in voice_ids:
-        return make_error(f"Voice with id: {voice_id} does not exist.")
-    if output_directory == "":
-        output_path = Path.home() / "Desktop"
-    else:
-        output_path = Path(os.path.expanduser(output_directory))
-    if not is_file_writeable(output_path):
-        return make_error(f"Directory ({output_path}) is not writeable")
+        make_error(f"Voice with id: {voice_id} does not exist.")
 
-    output_file_name = f"tts_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
+    output_path = make_output_path(output_directory, base_path)
+    output_file_name = make_output_file("tts", text, output_path)
 
     audio_data = client.text_to_speech.convert(
         text=text,
@@ -116,7 +112,9 @@ def text_to_sound_effects(
     text: str, duration_seconds: float = 2.0, output_directory: str = ""
 ) -> list[TextContent | EmbeddedResource]:
     if duration_seconds < 0.5 or duration_seconds > 22:
-        return make_error("Duration must be between 0.5 and 22 seconds")
+        make_error("Duration must be between 0.5 and 22 seconds")
+    output_path = make_output_path(output_directory, base_path)
+    output_file_name = make_output_file("sfx", text, output_path)
 
     audio_data = client.text_to_sound_effects.convert(
         text=text,
@@ -125,16 +123,6 @@ def text_to_sound_effects(
     )
     audio_bytes = b"".join(audio_data)
 
-    if output_directory == "":
-        output_path = Path.home() / "Desktop"
-    else:
-        output_path = Path(os.path.expanduser(output_directory))
-    if not is_file_writeable(output_path):
-        return make_error(f"Directory ({output_path}) is not writeable")
-
-    output_file_name = f"sfx_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
-
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     with open(output_path / output_file_name, "wb") as f:
         f.write(audio_bytes)
 
