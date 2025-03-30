@@ -22,6 +22,9 @@ client = ElevenLabs(api_key=api_key)
 mcp = FastMCP("ElevenLabs")
 
 
+@mcp.tool(
+    description="Convert text to speech with a given voice and save the output audio file to a given directory."
+)
 def text_to_speech(
     text: str,
     voice_id: str = "",
@@ -49,11 +52,11 @@ def text_to_speech(
     if output_directory == "":
         output_path = Path.home() / "Desktop"
     else:
-        output_path = Path(output_directory)
+        output_path = Path(os.path.expanduser(output_directory))
     if not is_file_writeable(output_path):
         return make_error(f"Directory ({output_path}) is not writeable")
 
-    output_file_name = f"tts_{text[:5]}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
+    output_file_name = f"tts_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
 
     audio_data = client.text_to_speech.convert(
         text=text,
@@ -69,7 +72,75 @@ def text_to_speech(
 
     return TextContent(
         type="text",
-        text=f"Audio generation successful. File saved as: {output_path / output_file_name}",
+        text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice_id}",
+    )
+
+
+@mcp.tool(
+    description="Transcribe speech from an audio file and save the output text file to a given directory or return the text directly."
+)
+def speech_to_text(
+    file_path: str, language_code: str = "eng", diarize=False
+) -> TextContent:
+    """Transcribe speech from an audio file using ElevenLabs API.
+
+    Args:
+        file_path: Path to the audio file to transcribe
+        language_code: Language code for transcription (default: "eng" for English)
+
+    Returns:
+        TextContent containing the transcription
+    """
+    with open(file_path, "rb") as f:
+        audio_bytes = f.read()
+    transcription = client.speech_to_text.convert(
+        model_id="scribe_v1",
+        file=audio_bytes,
+        language_code=language_code,
+        enable_logging=True,
+        diarize=diarize,
+        tag_audio_events=True,
+    )
+
+    if diarize:
+        return TextContent(
+            type="text", text=f"Diarized transcription:\n{transcription.words}"
+        )
+    return TextContent(type="text", text=f"Transcription:\n{transcription.text}")
+
+
+@mcp.tool(
+    description="Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory. Duration must be between 0.5 and 22 seconds."
+)
+def text_to_sound_effects(
+    text: str, duration_seconds: float = 2.0, output_directory: str = ""
+) -> list[TextContent | EmbeddedResource]:
+    if duration_seconds < 0.5 or duration_seconds > 22:
+        return make_error("Duration must be between 0.5 and 22 seconds")
+
+    audio_data = client.text_to_sound_effects.convert(
+        text=text,
+        output_format="mp3_44100_128",
+        duration_seconds=duration_seconds,
+    )
+    audio_bytes = b"".join(audio_data)
+
+    if output_directory == "":
+        output_path = Path.home() / "Desktop"
+    else:
+        output_path = Path(os.path.expanduser(output_directory))
+    if not is_file_writeable(output_path):
+        return make_error(f"Directory ({output_path}) is not writeable")
+
+    output_file_name = f"sfx_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path / output_file_name, "wb") as f:
+        f.write(audio_bytes)
+
+    return TextContent(
+        type="text",
+        text=f"Success. File saved as: {output_path / output_file_name}",
     )
 
 
@@ -125,79 +196,6 @@ def voice_clone(
         Available for Cloning: {voice.fine_tuning.available_for_cloning}
             Fine Tuning Status: {voice.fine_tuning.status}""",
     )
-
-
-@mcp.tool(description="Transcribe speech from an audio file")
-def speech_to_text(
-    file_path: str, language_code: str = "eng", diarize=False
-) -> TextContent:
-    """Transcribe speech from an audio file using ElevenLabs API.
-
-    Args:
-        file_path: Path to the audio file to transcribe
-        language_code: Language code for transcription (default: "eng" for English)
-
-    Returns:
-        TextContent containing the transcription
-    """
-    with open(file_path, "rb") as f:
-        audio_bytes = f.read()
-    transcription = client.speech_to_text.convert(
-        model_id="scribe_v1",
-        file=audio_bytes,
-        language_code=language_code,
-        enable_logging=True,
-        diarize=diarize,
-        tag_audio_events=True,
-    )
-
-    if diarize:
-        return TextContent(
-            type="text", text=f"Diarized transcription:\n{transcription.words}"
-        )
-    return TextContent(type="text", text=f"Transcription:\n{transcription.text}")
-
-
-@mcp.tool(description="Convert text description to sound effects")
-def text_to_sound_effects(
-    text: str, duration_seconds: float, file_path: str
-) -> list[TextContent | EmbeddedResource]:
-    audio_data = client.text_to_sound_effects.convert(
-        text=text,
-        output_format="mp3_44100_128",
-        duration_seconds=duration_seconds,
-    )
-    audio_bytes = b"".join(audio_data)
-
-    if os.path.isabs(file_path):
-        output_path = file_path
-    else:
-        downloads_dir = os.path.expanduser("~/Downloads")
-        output_path = os.path.join(downloads_dir, "sound_effect.mp3")
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "wb") as f:
-        f.write(audio_bytes)
-
-    audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
-    filename = Path(output_path).name
-    resource_uri = f"audio://{filename}"
-
-    return [
-        TextContent(
-            type="text",
-            text=f"Sound effect generation successful. File saved as: {output_path}",
-        ),
-        EmbeddedResource(
-            type="resource",
-            resource=BlobResourceContents(
-                uri=resource_uri,
-                name=filename,
-                blob=audio_base64,
-                mimeType="audio/mpeg",
-            ),
-        ),
-    ]
 
 
 @mcp.tool(description="Isolate audio from a file")

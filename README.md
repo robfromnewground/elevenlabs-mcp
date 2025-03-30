@@ -2,14 +2,11 @@
 
 [![smithery badge](https://smithery.ai/badge/@jacekduszenko/elevenlabs-mcp)](https://smithery.ai/server/@jacekduszenko/elevenlabs-mcp)
 
-Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and other MCP compatible clients to generate speech, clone voices, transcribe audio, and more.
+Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
 
 <a href="https://glama.ai/mcp/servers/elevenlabs-mcp">
   <img width="380" height="200" src="https://glama.ai/mcp/servers/elevenlabs-mcp/badge" alt="Eleven Labs MCP server" />
 </a>
-
-
-This server can be used with various  and more.
 
 ## Quick Start
 

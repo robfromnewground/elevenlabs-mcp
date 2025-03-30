@@ -5,7 +5,7 @@ from mcp.types import CallToolResult, TextContent
 
 def make_error(error_text: str) -> CallToolResult:
     return CallToolResult(
-        is_error=True,
+        isError=True,
         content=[TextContent(type="text", text=error_text)],
     )
 
