@@ -53,6 +53,9 @@ That's it! Your MCP client can now interact with Eleven Labs through these tools
 - `check_subscription`: Check your Eleven Labs subscription status
 - `list_voices`: Get a list of all available voices
 - `search_voices`: Search through your voice library for a specific voice
+- `speech_to_speech`: Transform audio from one voice to another using provided audio files
+- `text_to_voice`: Design a voice via a text prompt
+- `create_voice_from_preview`: Using an ID from `text_to_voice`, save your generated to your library
 
 ## Example Usage
 
@@ -116,3 +119,9 @@ brew install libmagic
 Logs when running with Claude Desktop can be found at:
 - **Windows**: `%APPDATA%\Claude\logs\mcp-server-elevenlabs.log`
 - **macOS**: `~/Library/Logs/Claude/mcp-server-elevenlabs.log`
+
+### Timeouts when using certain tools
+
+Certain ElevenLabs API operations like voice design and audio isolation can take a long time to resolve. When using the MCP inspector in dev mode you might get timeout errors, despite the tool completing its intended task.
+
+This shouldn't occur when using a client like Claude.
