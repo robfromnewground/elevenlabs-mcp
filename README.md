@@ -119,3 +119,9 @@ brew install libmagic
 Logs when running with Claude Desktop can be found at:
 - **Windows**: `%APPDATA%\Claude\logs\mcp-server-elevenlabs.log`
 - **macOS**: `~/Library/Logs/Claude/mcp-server-elevenlabs.log`
+
+### Timeouts when using certain tools
+
+Certain ElevenLabs API operations like voice design and audio isolation can take a long time to resolve. When using the MCP inspector in dev mode you might get timeout errors, despite the tool completing its intended task.
+
+This shouldn't occur when using a client like Claude.
