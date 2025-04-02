@@ -12,8 +12,8 @@ Official Eleven Labs Model Context Protocol (MCP) server that enables interactio
 
 1. Get your API key from [Eleven Labs](https://elevenlabs.io/). You'll need an account to access the API.
 
-2. Add this configuration to your MCP Client configuration file. For Claude Desktop the file is located in different directories depending on OS: 
-- **On Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+2. Add this configuration to your MCP Client configuration file. For Claude Desktop the file is located in different directories depending on OS:
+- **On Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **On macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ```json
@@ -84,9 +84,19 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
-4. Install the server in Claude Desktop: `fastmcp install server.py`.
+4. Install the mcp cli:
+```bash
+uv add "mcp[cli]"
+```
 
-5. Debug and test locally with MCP Inspector: `fastmcp dev server.py`
+5 Install `libmagic`
+```bash
+brew install libmagic
+```
+
+6. Install the server in Claude Desktop: `mcp install server.py`.
+
+7. Debug and test locally with MCP Inspector: `mcp dev server.py`
 
 ## Requirements
 
