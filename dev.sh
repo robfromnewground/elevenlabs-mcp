@@ -1,1 +1,1 @@
-fastmcp dev elevenlabs_mcp/server.py --with python-dotenv --with elevenlabs --with-editable .
+fastmcp dev elevenlabs_mcp/server.py --with python-dotenv --with elevenlabs --with python-magic --with fuzzywuzzy --with python-Levenshtein --with-editable .

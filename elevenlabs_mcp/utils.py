@@ -21,8 +21,8 @@ def is_file_writeable(path: Path) -> bool:
     return os.access(parent_dir, os.W_OK)
 
 
-def make_output_file(tool: str, text: str, output_path: Path) -> Path:
-    output_file_name = f"{tool}_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp3"
+def make_output_file(tool: str, text: str, output_path: Path, extension: str) -> Path:
+    output_file_name = f"{tool}_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
     return output_path / output_file_name
 
 
@@ -77,8 +77,18 @@ def find_similar_filenames(
 def try_find_similar_files(
     filename: str, directory: Path, take_n: int = 5
 ) -> list[Path]:
-    similar_file_paths, _ = zip(*find_similar_filenames(filename, directory)[:take_n])
-    return [Path(path) for path in similar_file_paths]
+    similar_files = find_similar_filenames(filename, directory)
+    if not similar_files:
+        return []
+    mime = magic.Magic(mime=True)
+    filtered_files = []
+
+    for path, _ in similar_files[:take_n]:
+        file_type = mime.from_file(str(path))
+        if file_type.startswith(("audio/", "video/")):
+            filtered_files.append(path)
+
+    return filtered_files
 
 
 def handle_input_file(file_path: str) -> Path:
@@ -90,10 +100,15 @@ def handle_input_file(file_path: str) -> Path:
     if not path.exists() and path.parent.exists():
         parent_directory = path.parent
         similar_files = try_find_similar_files(path.name, parent_directory)
+        similar_files_formatted = ",".join([str(file) for file in similar_files])
         if similar_files:
-            make_error(f"File ({path}) does not exist. Did you mean: {similar_files}?")
+            make_error(
+                f"File ({path}) does not exist. Did you mean any of these files: {similar_files_formatted}?"
+            )
         make_error(f"File ({path}) does not exist")
-    if not path.is_file():
+    elif not path.exists():
+        make_error(f"File ({path}) does not exist")
+    elif not path.is_file():
         make_error(f"File ({path}) is not a file")
 
     mime = magic.Magic(mime=True)

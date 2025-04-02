@@ -1,12 +1,9 @@
 import os
-import base64
-from pathlib import Path
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.types import (
     TextContent,
     EmbeddedResource,
-    BlobResourceContents,
 )
 from elevenlabs.client import ElevenLabs
 from elevenlabs_mcp.model import McpVoice
@@ -29,7 +26,8 @@ mcp = FastMCP("ElevenLabs")
 
 
 @mcp.tool(
-    description="Convert text to speech with a given voice and save the output audio file to a given directory."
+    description="""Convert text to speech with a given voice and save the output audio file to a given directory.
+    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user."""
 )
 def text_to_speech(
     text: str,
@@ -57,7 +55,7 @@ def text_to_speech(
         make_error(f"Voice with id: {voice_id} does not exist.")
 
     output_path = make_output_path(output_directory, base_path)
-    output_file_name = make_output_file("tts", text, output_path)
+    output_file_name = make_output_file("tts", text, output_path, "mp3")
 
     audio_data = client.text_to_speech.convert(
         text=text,
@@ -78,13 +76,14 @@ def text_to_speech(
 
 
 @mcp.tool(
-    description="Transcribe speech from an audio file and optionally save the output text file to a given directory or return the text to the client directly."
+    description="Transcribe speech from an audio file and either save the output text file to a given directory or return the text to the client directly."
 )
 def speech_to_text(
-    file_path: str,
+    input_file_path: str,
     language_code: str = "eng",
     diarize=False,
-    save_transcription=False,
+    save_transcript_to_file=True,
+    return_transcript_to_client_directly=False,
     output_directory: str = "",
 ) -> TextContent:
     """Transcribe speech from an audio file using ElevenLabs API.
@@ -96,8 +95,13 @@ def speech_to_text(
     Returns:
         TextContent containing the transcription
     """
-    file_path = handle_input_file(file_path)
-    with open(file_path, "rb") as f:
+    if not save_transcript_to_file and not return_transcript_to_client_directly:
+        make_error("Must save transcript to file or return it to the client directly.")
+    file_path = handle_input_file(input_file_path)
+    if save_transcript_to_file:
+        output_path = make_output_path(output_directory, base_path)
+        output_file_name = make_output_file("stt", file_path.name, output_path, "txt")
+    with file_path.open("rb") as f:
         audio_bytes = f.read()
     transcription = client.speech_to_text.convert(
         model_id="scribe_v1",
@@ -108,23 +112,30 @@ def speech_to_text(
         tag_audio_events=True,
     )
 
-    if diarize:
+    if save_transcript_to_file:
+        with open(output_path / output_file_name, "w") as f:
+            f.write(transcription.text)
+
+    if return_transcript_to_client_directly:
+        return TextContent(type="text", text=transcription.text)
+    else:
         return TextContent(
-            type="text", text=f"Diarized transcription:\n{transcription.words}"
+            type="text", text=f"Transcription saved to {output_path / output_file_name}"
         )
-    return TextContent(type="text", text=f"Transcription:\n{transcription.text}")
 
 
 @mcp.tool(
-    description="Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory. Duration must be between 0.5 and 22 seconds."
+    description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory. 
+    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user.
+    Duration must be between 0.5 and 5 seconds."""
 )
 def text_to_sound_effects(
     text: str, duration_seconds: float = 2.0, output_directory: str = ""
 ) -> list[TextContent | EmbeddedResource]:
-    if duration_seconds < 0.5 or duration_seconds > 22:
-        make_error("Duration must be between 0.5 and 22 seconds")
+    if duration_seconds < 0.5 or duration_seconds > 5:
+        make_error("Duration must be between 0.5 and 5 seconds")
     output_path = make_output_path(output_directory, base_path)
-    output_file_name = make_output_file("sfx", text, output_path)
+    output_file_name = make_output_file("sfx", text, output_path, "mp3")
 
     audio_data = client.text_to_sound_effects.convert(
         text=text,
@@ -196,48 +207,29 @@ def voice_clone(
     )
 
 
-@mcp.tool(description="Isolate audio from a file")
+@mcp.tool(
+    description="Isolate audio from a file and save the output audio file to a given directory. Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user."
+)
 def isolate_audio(
-    input_file_path: str, output_file_path: str
+    input_file_path: str, output_directory: str = ""
 ) -> list[TextContent | EmbeddedResource]:
-    if not os.path.exists(input_file_path):
-        raise ValueError(f"Input file not found: {input_file_path}")
-
-    with open(input_file_path, "rb") as f:
+    file_path = handle_input_file(input_file_path)
+    output_path = make_output_path(output_directory, base_path)
+    output_file_name = make_output_file("iso", file_path.name, output_path, "mp3")
+    with file_path.open("rb") as f:
         audio_bytes = f.read()
+    audio_data = client.audio_isolation.audio_isolation(
+        audio=audio_bytes,
+    )
+    audio_bytes = b"".join(audio_data)
 
-    isolated_audio = b"".join(client.audio_isolation.audio_isolation(audio=audio_bytes))
+    with open(output_path / output_file_name, "wb") as f:
+        f.write(audio_bytes)
 
-    if output_file_path is None:
-        downloads_dir = os.path.expanduser("~/Downloads")
-        output_file_path = os.path.join(downloads_dir, "isolated_audio.mp3")
-    elif not os.path.isabs(output_file_path):
-        downloads_dir = os.path.expanduser("~/Downloads")
-        output_file_path = os.path.join(downloads_dir, output_file_path)
-
-    os.makedirs(os.path.dirname(output_file_path), exist_ok=True)
-    with open(output_file_path, "wb") as f:
-        f.write(isolated_audio)
-
-    audio_base64 = base64.b64encode(isolated_audio).decode("utf-8")
-    filename = Path(output_file_path).name
-    resource_uri = f"audio://{filename}"
-
-    return [
-        TextContent(
-            type="text",
-            text=f"Audio isolation successful. File saved as: {output_file_path}",
-        ),
-        EmbeddedResource(
-            type="resource",
-            resource=BlobResourceContents(
-                uri=resource_uri,
-                name=filename,
-                blob=audio_base64,
-                mimeType="audio/mpeg",
-            ),
-        ),
-    ]
+    return TextContent(
+        type="text",
+        text=f"Success. File saved as: {output_path / output_file_name}",
+    )
 
 
 @mcp.tool(

@@ -12,14 +12,17 @@ dependencies = [
     "httpx==0.28.1",
     "elevenlabs>=1.54.0",
     "python-magic>=0.4.27",
-    "fuzzywuzzy==0.18.0"
+    "fuzzywuzzy==0.18.0",
+    "python-Levenshtein>=0.25.0"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pre-commit==3.6.2",
     "ruff==0.3.0",
-    "fastmcp==0.4.1"
+    "fastmcp==0.4.1",
+    "pytest==8.0.0",
+    "pytest-cov==4.1.0"
 ]
 
 [build-system]
@@ -28,3 +31,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["elevenlabs_mcp"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=elevenlabs_mcp --cov-report=term-missing"
