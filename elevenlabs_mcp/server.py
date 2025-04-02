@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
@@ -13,6 +14,9 @@ from elevenlabs_mcp.utils import (
     make_output_file,
     handle_input_file,
 )
+from elevenlabs_mcp.convai import create_conversation_config, create_platform_settings
+from elevenlabs.types.knowledge_base_locator import KnowledgeBaseLocator
+from io import BytesIO
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -27,12 +31,12 @@ mcp = FastMCP("ElevenLabs")
 
 @mcp.tool(
     description="""Convert text to speech with a given voice and save the output audio file to a given directory.
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user."""
+    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop."""
 )
 def text_to_speech(
     text: str,
-    voice_id: str = "",
-    output_directory: str = "",
+    voice_id: str = "9BWtsMINqrJLrRacOk9x",
+    output_directory: str | None = None,
 ):
     """Convert text to speech with a given voice and save the output audio file to a given directory.
 
@@ -45,15 +49,6 @@ def text_to_speech(
     Returns:
         List containing text content and audio data as embedded resource
     """
-    voices = client.voices.get_all()
-    voice_ids = [voice.voice_id for voice in voices.voices]
-    if len(voice_ids) == 0:
-        make_error("No voices found")
-    if voice_id == "":
-        voice_id = voice_ids[0]
-    elif voice_id not in voice_ids:
-        make_error(f"Voice with id: {voice_id} does not exist.")
-
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("tts", text, output_path, "mp3")
 
@@ -81,10 +76,10 @@ def text_to_speech(
 def speech_to_text(
     input_file_path: str,
     language_code: str = "eng",
-    diarize=False,
-    save_transcript_to_file=True,
-    return_transcript_to_client_directly=False,
-    output_directory: str = "",
+    diarize: bool = False,
+    save_transcript_to_file: bool = True,
+    return_transcript_to_client_directly: bool = False,
+    output_directory: str | None = None,
 ) -> TextContent:
     """Transcribe speech from an audio file using ElevenLabs API.
 
@@ -126,11 +121,11 @@ def speech_to_text(
 
 @mcp.tool(
     description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory. 
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user.
+    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
     Duration must be between 0.5 and 5 seconds."""
 )
 def text_to_sound_effects(
-    text: str, duration_seconds: float = 2.0, output_directory: str = ""
+    text: str, duration_seconds: float = 2.0, output_directory: str | None = None
 ) -> list[TextContent | EmbeddedResource]:
     if duration_seconds < 0.5 or duration_seconds > 5:
         make_error("Duration must be between 0.5 and 5 seconds")
@@ -177,41 +172,38 @@ def get_voices() -> list[McpVoice]:
     ]
 
 
-@mcp.resource("voice://{voice_id}")
+@mcp.tool(description="Get details of a specific voice.")
 def get_voice(voice_id: str) -> McpVoice:
     """Get details of a specific voice."""
-    response = client.voices.get_all()
-    for voice in response.voices:
-        if voice.voice_id == voice_id:
-            return McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
-    raise f"Voice with id: {voice_id} not found"
+    response = client.voices.get(voice_id=voice_id)
+    return McpVoice(
+        id=response.voice_id,
+        name=response.name,
+        category=response.category,
+        fine_tuning_status=response.fine_tuning.state,
+    )
 
 
 @mcp.tool(description="Clone a voice using provided audio files")
 def voice_clone(
     name: str, files: list[str], description: str | None = None
 ) -> TextContent:
-    voice = client.clone(name=name, description=description, files=files)
-
+    input_files = [str(handle_input_file(file).absolute()) for file in files]
+    voice = client.clone(name=name, description=description, files=input_files)
     return TextContent(
         type="text",
-        text=f"""Voice cloned successfully:
-        Name: {voice.name}
+        text=f"""Voice cloned successfully: Name: {voice.name}
         ID: {voice.voice_id}
         Category: {voice.category}
-        Description: {voice.description or "N/A"}
-        Labels: {", ".join(voice.labels) if voice.labels else "None"}
-        Preview URL: {voice.preview_url or "N/A"}
-        Available for Cloning: {voice.fine_tuning.available_for_cloning}
-            Fine Tuning Status: {voice.fine_tuning.status}""",
+        Description: {voice.description or "N/A"}""",
     )
 
 
 @mcp.tool(
-    description="Isolate audio from a file and save the output audio file to a given directory. Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user."
+    description="Isolate audio from a file and save the output audio file to a given directory. Directory is optional, if not provided, the output file will be saved to $HOME/Desktop."
 )
 def isolate_audio(
-    input_file_path: str, output_directory: str = ""
+    input_file_path: str, output_directory: str | None = None
 ) -> list[TextContent | EmbeddedResource]:
     file_path = handle_input_file(input_file_path)
     output_path = make_output_path(output_directory, base_path)
@@ -238,6 +230,151 @@ def isolate_audio(
 def check_subscription() -> TextContent:
     subscription = client.user.get_subscription()
     return TextContent(type="text", text=f"{subscription.model_dump_json(indent=2)}")
+
+
+@mcp.tool(description="Create a conversational AI agent with custom configuration")
+def create_agent(
+    name: str,
+    system_prompt: str,
+    voice_id: str | None = None,
+    language: str = "en",
+    llm: str = "gemini-2.0-flash-001",
+    first_message: str | None = None,
+    temperature: float = 0.5,
+    max_tokens: int | None = None,
+    asr_quality: str = "high",
+    model_id: str = "eleven_turbo_v2",
+    optimize_streaming_latency: int = 3,
+    stability: float = 0.5,
+    similarity_boost: float = 0.8,
+    turn_timeout: int = 7,
+    max_duration_seconds: int = 300,
+    record_voice: bool = True,
+    retention_days: int = 730,
+) -> TextContent:
+    conversation_config = create_conversation_config(
+        language=language,
+        system_prompt=system_prompt,
+        llm=llm,
+        first_message=first_message,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        asr_quality=asr_quality,
+        voice_id=voice_id,
+        model_id=model_id,
+        optimize_streaming_latency=optimize_streaming_latency,
+        stability=stability,
+        similarity_boost=similarity_boost,
+        turn_timeout=turn_timeout,
+        max_duration_seconds=max_duration_seconds,
+    )
+
+    platform_settings = create_platform_settings(
+        record_voice=record_voice,
+        retention_days=retention_days,
+    )
+
+    response = client.conversational_ai.create_agent(
+        name=name,
+        conversation_config=conversation_config,
+        platform_settings=platform_settings,
+    )
+
+    return TextContent(
+        type="text",
+        text=f"""Agent created successfully: Name: {name}, Agent ID: {response.agent_id}, System Prompt: {system_prompt}, Voice ID: {voice_id or "Default"}, Language: {language}, LLM: {llm}, You can use this agent ID for future interactions with the agent.""",
+    )
+
+
+@mcp.tool(
+    description="Add a knowledge base to ElevenLabs workspace. Allowed types are epub, pdf, docx, txt, html."
+)
+def add_knowledge_base_to_agent(
+    agent_id: str,
+    knowledge_base_name: str,
+    url: str | None = None,
+    input_file_path: str | None = None,
+    text: str | None = None,
+) -> TextContent:
+    provided_params = [
+        param for param in [url, input_file_path, text] if param is not None
+    ]
+    if len(provided_params) == 0:
+        make_error("Must provide either a URL, a file, or text")
+    if len(provided_params) > 1:
+        make_error("Must provide exactly one of: URL, file, or text")
+
+    if text is not None:
+        text_bytes = text.encode("utf-8")
+        text_io = BytesIO(text_bytes)
+        text_io.name = "text.txt"
+        text_io.content_type = "text/plain"
+        file = text_io
+    elif input_file_path is not None:
+        path = handle_input_file(file_path=input_file_path, audio_content_check=False)
+        file = open(path, "rb")
+
+    response = client.conversational_ai.add_to_knowledge_base(
+        name=knowledge_base_name,
+        url=url,
+        file=file,
+    )
+    agent = client.conversational_ai.get_agent(agent_id=agent_id)
+    agent.conversation_config.agent.prompt.knowledge_base.append(
+        KnowledgeBaseLocator(
+            type="file" if file else "url",
+            name=knowledge_base_name,
+            id=response.id,
+        )
+    )
+    client.conversational_ai.update_agent(
+        agent_id=agent_id, conversation_config=agent.conversation_config
+    )
+    return TextContent(
+        type="text",
+        text=f"""Knowledge base created with ID: {response.id} and added to agent {agent_id} successfully.""",
+    )
+
+
+@mcp.tool(description="List all available conversational AI agents")
+def list_agents() -> TextContent:
+    """List all available conversational AI agents.
+
+    Returns:
+        TextContent with a formatted list of available agents
+    """
+    response = client.conversational_ai.get_agents()
+
+    if not response.agents:
+        return TextContent(type="text", text="No agents found.")
+
+    agent_list = ",".join(
+        f"{agent.name} (ID: {agent.agent_id})" for agent in response.agents
+    )
+
+    return TextContent(type="text", text=f"Available agents: {agent_list}")
+
+
+@mcp.tool(description="Get details about a specific conversational AI agent")
+def get_agent(agent_id: str) -> TextContent:
+    """Get details about a specific conversational AI agent.
+
+    Args:
+        agent_id: The ID of the agent to retrieve
+
+    Returns:
+        TextContent with detailed information about the agent
+    """
+    response = client.conversational_ai.get_agent(agent_id=agent_id)
+
+    voice_info = "None"
+    if response.conversation_config.tts:
+        voice_info = f"Voice ID: {response.conversation_config.tts.voice_id}"
+
+    return TextContent(
+        type="text",
+        text=f"""Agent Details: Name: {response.name}, Agent ID: {response.agent_id}, Voice Configuration: {voice_info}, Created At: {datetime.fromtimestamp(response.metadata.created_at_unix_secs).strftime("%Y-%m-%d %H:%M:%S")}""",
+    )
 
 
 if __name__ == "__main__":

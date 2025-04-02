@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from typing import Optional
 from datetime import datetime
 import magic
 from fuzzywuzzy import fuzz
@@ -26,9 +25,11 @@ def make_output_file(tool: str, text: str, output_path: Path, extension: str) ->
     return output_path / output_file_name
 
 
-def make_output_path(output_directory: str, base_path: Optional[str] = None) -> Path:
+def make_output_path(
+    output_directory: str | None, base_path: str | None = None
+) -> Path:
     output_path = None
-    if output_directory == "":
+    if output_directory is None:
         output_path = Path.home() / "Desktop"
     elif not os.path.isabs(output_directory) and base_path:
         output_path = Path(os.path.expanduser(base_path)) / Path(output_directory)
@@ -91,7 +92,7 @@ def try_find_similar_files(
     return filtered_files
 
 
-def handle_input_file(file_path: str) -> Path:
+def handle_input_file(file_path: str, audio_content_check: bool = True) -> Path:
     if not os.path.isabs(file_path) and not os.environ.get("ELEVENLABS_MCP_BASE_PATH"):
         make_error(
             "File path must be an absolute path if ELEVENLABS_MCP_BASE_PATH is not set"
@@ -114,6 +115,6 @@ def handle_input_file(file_path: str) -> Path:
     mime = magic.Magic(mime=True)
     file_type = mime.from_file(str(path))
 
-    if not file_type.startswith(("audio/", "video/")):
+    if audio_content_check and not file_type.startswith(("audio/", "video/")):
         make_error(f"File ({path}) is not an audio or video file")
     return path
