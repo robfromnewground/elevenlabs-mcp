@@ -108,7 +108,7 @@ def text_to_speech(
 
     return TextContent(
         type="text",
-        text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice.name}",
+        text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice.name if voice else DEFAULT_VOICE_ID}",
     )
 
 
