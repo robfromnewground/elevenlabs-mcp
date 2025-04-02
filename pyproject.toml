@@ -14,6 +14,8 @@ dependencies = [
     "python-magic>=0.4.27",
     "fuzzywuzzy==0.18.0",
     "python-Levenshtein>=0.25.0",
+    "sounddevice==0.5.1",
+    "soundfile==0.13.1"
 ]
 
 [project.optional-dependencies]

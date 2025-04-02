@@ -19,6 +19,7 @@ from elevenlabs_mcp.utils import (
 from elevenlabs_mcp.convai import create_conversation_config, create_platform_settings
 from elevenlabs.types.knowledge_base_locator import KnowledgeBaseLocator
 from io import BytesIO
+from elevenlabs import play
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -543,6 +544,13 @@ def create_voice_from_preview(
         type="text",
         text=f"Success. Voice created: {voice.name} with ID:{voice.voice_id}",
     )
+
+
+@mcp.tool(description="Play an audio file. Supports WAV and MP3 formats.")
+def play_audio(input_file_path: str) -> TextContent:
+    file_path = handle_input_file(input_file_path)
+    play(open(file_path, "rb").read(), use_ffmpeg=False)
+    return TextContent(type="text", text=f"Successfully played audio file: {file_path}")
 
 
 if __name__ == "__main__":
