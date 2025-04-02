@@ -109,7 +109,7 @@ brew install libmagic
   - python-dotenv==1.0.1
   - pydantic>=2.6.1
   - httpx==0.28.1
-  - elevenlabs>=1.54.0
+  - elevenlabs>=1.56.0
 
 ## Troubleshooting
 
