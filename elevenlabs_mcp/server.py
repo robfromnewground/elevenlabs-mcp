@@ -10,7 +10,12 @@ from mcp.types import (
 )
 from elevenlabs.client import ElevenLabs
 from elevenlabs_mcp.model import McpVoice
-from elevenlabs_mcp.utils import make_error, make_output_path, make_output_file
+from elevenlabs_mcp.utils import (
+    make_error,
+    make_output_path,
+    make_output_file,
+    handle_input_file,
+)
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -73,10 +78,14 @@ def text_to_speech(
 
 
 @mcp.tool(
-    description="Transcribe speech from an audio file and save the output text file to a given directory or return the text directly."
+    description="Transcribe speech from an audio file and optionally save the output text file to a given directory or return the text to the client directly."
 )
 def speech_to_text(
-    file_path: str, language_code: str = "eng", diarize=False
+    file_path: str,
+    language_code: str = "eng",
+    diarize=False,
+    save_transcription=False,
+    output_directory: str = "",
 ) -> TextContent:
     """Transcribe speech from an audio file using ElevenLabs API.
 
@@ -87,6 +96,7 @@ def speech_to_text(
     Returns:
         TextContent containing the transcription
     """
+    file_path = handle_input_file(file_path)
     with open(file_path, "rb") as f:
         audio_bytes = f.read()
     transcription = client.speech_to_text.convert(
