@@ -1,4 +1,5 @@
 import os
+import base64
 from typing import Literal
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
@@ -283,6 +284,99 @@ def isolate_audio(
 def check_subscription() -> TextContent:
     subscription = client.user.get_subscription()
     return TextContent(type="text", text=f"{subscription.model_dump_json(indent=2)}")
+
+
+@mcp.tool(description="Transform audio from one voice to another using provided audio files")
+def speech_to_speech(
+    input_file_path: str,
+    voice_name: str = "Adam",
+    output_directory: str = "",
+) -> TextContent:
+
+    voices = client.voices.search(search=voice_name)
+
+    if len(voices.voices) == 0:
+        make_error("No voice found with that name.")
+
+    voice = next((v for v in voices.voices if v.name == voice_name), None)
+
+    if voice is None:
+        make_error(f"Voice with name: {voice_name} does not exist.")
+
+    file_path = handle_input_file(input_file_path)
+    output_path = make_output_path(output_directory, base_path)
+    output_file_name = make_output_file("sts", file_path.name, output_path, "mp3")
+
+    with file_path.open("rb") as f:
+        audio_bytes = f.read()
+
+    audio_data = client.speech_to_speech.convert(
+        model_id="eleven_english_sts_v2",
+        voice_id=voice.voice_id,
+        audio=audio_bytes,
+    )
+
+    audio_bytes = b"".join(audio_data)
+
+    with open(output_path / output_file_name, "wb") as f:
+        f.write(audio_bytes)
+
+    return TextContent(
+        type="text",
+        text=f"Success. File saved as: {output_path / output_file_name}"
+    )
+
+
+@mcp.tool(description="Create voice previews from a text prompt. Creates three previews with slight variations. Saves the previews to a given directory. If no text is provided, the tool will auto-generate text.")
+def text_to_voice(
+    voice_description: str,
+    text: str | None = None,
+    output_directory: str = "",
+) -> TextContent:
+    if voice_description == "":
+        make_error("Voice description is required.")
+
+    previews = client.text_to_voice.create_previews(
+        voice_description=voice_description,
+        text=text,
+        auto_generate_text=True if text is None else False,
+    )
+
+    output_path = make_output_path(output_directory, base_path)
+
+    generated_voice_ids = []
+
+    for preview in previews.previews:
+        output_file_name = make_output_file("voice_design", preview.generated_voice_id, output_path, "mp3", full_id=True)
+        generated_voice_ids.append(preview.generated_voice_id)
+        audio_bytes = base64.b64decode(preview.audio_base_64)
+
+        with open(output_path / output_file_name, "wb") as f:
+            f.write(audio_bytes)
+
+    return TextContent(
+        type="text",
+        text=f"Success. Files saved at: {output_path}. Generated voice IDs are: {', '.join(generated_voice_ids)}"
+    )
+
+
+@mcp.tool(description="Add a generated voice to the voice library. Uses the voice ID from the `text_to_voice` tool.")
+def create_voice_from_preview(
+    generated_voice_id: str,
+    voice_name: str,
+    voice_description: str,
+) -> TextContent:
+
+    voice = client.text_to_voice.create_voice_from_preview(
+        voice_name=voice_name,
+        voice_description=voice_description,
+        generated_voice_id=generated_voice_id,
+    )
+
+    return TextContent(
+        type="text",
+        text=f"Success. Voice created: {voice.name} with ID:{voice.voice_id}"
+    )
 
 
 if __name__ == "__main__":

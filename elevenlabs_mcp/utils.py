@@ -21,8 +21,10 @@ def is_file_writeable(path: Path) -> bool:
     return os.access(parent_dir, os.W_OK)
 
 
-def make_output_file(tool: str, text: str, output_path: Path, extension: str) -> Path:
-    output_file_name = f"{tool}_{text[:5].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
+def make_output_file(tool: str, text: str, output_path: Path, extension: str, full_id: bool = False) -> Path:
+    id = text if full_id else text[:5]
+
+    output_file_name = f"{tool}_{id.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
     return output_path / output_file_name
 
 
