@@ -52,6 +52,7 @@ That's it! Your MCP client can now interact with Eleven Labs through these tools
 - `isolate_audio`: Isolate audio from a file
 - `check_subscription`: Check your Eleven Labs subscription status
 - `list_voices`: Get a list of all available voices
+- `search_voices`: Search through your voice library for a specific voice
 
 ## Example Usage
 
