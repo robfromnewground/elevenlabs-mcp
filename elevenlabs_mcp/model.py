@@ -5,6 +5,7 @@ class McpVoice(BaseModel):
     id: str
     name: str
     category: str
+    fine_tuning_status: str
 
 
 class ConvAiAgentListItem(BaseModel):

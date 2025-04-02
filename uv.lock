@@ -220,6 +220,7 @@ dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
+    { name = "tomli" },
 ]
 
 [package.metadata]
@@ -240,6 +241,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.3.0" },
     { name = "sounddevice", specifier = "==0.5.1" },
     { name = "soundfile", specifier = "==0.13.1" },
+    { name = "tomli", marker = "extra == 'dev'" },
     { name = "uvicorn", specifier = "==0.27.1" },
 ]
 provides-extras = ["dev"]

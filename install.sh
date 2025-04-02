@@ -1,1 +1,0 @@
-fastmcp install server.py

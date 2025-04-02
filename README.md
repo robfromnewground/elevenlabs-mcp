@@ -8,37 +8,18 @@ Official Eleven Labs Model Context Protocol (MCP) server that enables interactio
   <img width="380" height="200" src="https://glama.ai/mcp/servers/elevenlabs-mcp/badge" alt="Eleven Labs MCP server" />
 </a>
 
-## Quick Start
+## Quick Start with Claude
 
 1. Get your API key from [Eleven Labs](https://elevenlabs.io/). You'll need an account to access the API.
 
-2. Add this configuration to your MCP Client configuration file. For Claude Desktop the file is located in different directories depending on OS:
-- **On Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-- **On macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+2. Generate Claude configuration file:
+* Create virtual env in this directory: `uv init && uv venv`
+* Source the virtualenv: `source .venv bin/activate`
+* Install the development version: `uv pip install -e ".[dev]"`
+* For Claude, run this script to create the configuration file and place it in Claude directory: `python install.py`
+* For other MCP clients, get the script output and put it in corresponding MCP configuration directory specific to each client: `python install.py --print`
 
-```json
-{
-  "mcpServers": {
-    "ElevenLabs": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--with",
-        "elevenlabs",
-        "--with",
-        "mcp[cli]",
-        "mcp",
-        "run",
-        "elevenlabs_mcp/server.py"
-      ],
-      "env": {
-        "ELEVENLABS_API_KEY": "your_api_key_here",
-        "ELEVENLABS_MCP_BASE_PATH": "~/Documents" // optional base path for output files
-      }
-    }
-  }
-}
-```
+
 Output files will be saved by default in `$HOME/Desktop` directory. All tools accept an optional `output_directory` to set the output path. If `ELEVENLABS_MCP_BASE_PATH` is not set, the `output_directory` must be an *absolute* path. If the environment variable is set, relative paths will be used to save outputs in directory specified by `ELEVENLABS_MCP_BASE_PATH`.
 
 3. Restart the MCP client.

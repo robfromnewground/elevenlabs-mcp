@@ -26,7 +26,6 @@ api_key = os.getenv("ELEVENLABS_API_KEY")
 base_path = os.getenv("ELEVENLABS_MCP_BASE_PATH")
 DEFAULT_VOICE_ID = "9BWtsMINqrJLrRacOk9x"
 
-
 if not api_key:
     raise ValueError("ELEVENLABS_API_KEY environment variable is required")
 
@@ -72,6 +71,7 @@ def text_to_speech(
     if voice_id is not None and voice_name is not None:
         make_error("voice_id and voice_name cannot both be provided.")
 
+    voice = None
     if voice_id is not None:
         voice = client.voices.get(voice_id=voice_id)
     elif voice_name is not None:
