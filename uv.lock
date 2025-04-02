@@ -145,7 +145,7 @@ wheels = [
 
 [[package]]
 name = "elevenlabs"
-version = "1.54.0"
+version = "1.56.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
@@ -155,9 +155,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6a/af/6a5d45770c3408c1c7587518e6b527b192bffd39ca56e778413129e88554/elevenlabs-1.54.0.tar.gz", hash = "sha256:d559786363dc3fca0121e8baac51d31149cf96284dff04e523e961dc1085dfd4", size = 150920 }
+sdist = { url = "https://files.pythonhosted.org/packages/1a/ad/e65a5c854a9ee0759c6b19da8981c275253f4cfc1761394b4067bfed4792/elevenlabs-1.56.0.tar.gz", hash = "sha256:69f078844f1adeb5a9c154e0514575e34d9b57909129d9a94a4ef8d41673bcac", size = 174798 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/44/8e/fe7f4e6f601db785196cfeb7c2e05ff1cc584e66964fe4e4d33188a1b479/elevenlabs-1.54.0-py3-none-any.whl", hash = "sha256:ea3935e2daa6045471a039a00ad7ae1fd2f1c2fc148ee75af5b99e1a135e1925", size = 347549 },
+    { url = "https://files.pythonhosted.org/packages/4f/f0/f711ffe2fcc4fb8405889ca81a478c54ddaa290ca39d74823c8042eacf3f/elevenlabs-1.56.0-py3-none-any.whl", hash = "sha256:8aaa6be6186318cc95abf63ba8806d991f13cf698b28305e54fb51673d791ed5", size = 413655 },
 ]
 
 [[package]]
@@ -169,7 +169,7 @@ dependencies = [
     { name = "fastapi" },
     { name = "fuzzywuzzy" },
     { name = "httpx" },
-    { name = "mcp" },
+    { name = "mcp", extra = ["cli"] },
     { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "python-levenshtein" },
@@ -188,12 +188,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "elevenlabs", specifier = ">=1.54.0" },
+    { name = "elevenlabs", specifier = ">=1.56.0" },
     { name = "fastapi", specifier = "==0.109.2" },
     { name = "fastmcp", marker = "extra == 'dev'", specifier = "==0.4.1" },
     { name = "fuzzywuzzy", specifier = "==0.18.0" },
     { name = "httpx", specifier = "==0.28.1" },
-    { name = "mcp", specifier = ">=0.1.0" },
+    { name = "mcp", extras = ["cli"], specifier = ">=0.1.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = "==3.6.2" },
     { name = "pydantic", specifier = ">=2.6.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==8.0.0" },
@@ -404,6 +404,12 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/00/9d/ac1aaa3de8655a72fe07c0c2901ed35f0da2b3ffb2a1bfc4f46bbd7b6710/mcp-1.4.0.tar.gz", hash = "sha256:5b750b14ca178eeb7b2addbd94adb21785d7b4de5d5f3577ae193d787869e2dd", size = 155809 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/93/05/1cbc9f93900d4348f4e782811f251541d860e7d13c30cd68b402cd9edbd4/mcp-1.4.0-py3-none-any.whl", hash = "sha256:d2760e1ea7635b1e70da516698620a016cde214976416dd894f228600b08984c", size = 73036 },
+]
+
+[package.optional-dependencies]
+cli = [
+    { name = "python-dotenv" },
+    { name = "typer" },
 ]
 
 [[package]]

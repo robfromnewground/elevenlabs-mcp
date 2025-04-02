@@ -1,4 +1,5 @@
 import os
+from typing import Literal
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.types import (
@@ -31,37 +32,58 @@ mcp = FastMCP("ElevenLabs")
 )
 def text_to_speech(
     text: str,
-    voice_id: str = "",
+    voice_name: str = "Adam",
+    stability: float = 0.5,
+    similarity_boost: float = 0.75,
+    style: float = 0,
+    use_speaker_boost: bool = True,
+    speed: float = 1.0,
     output_directory: str = "",
 ):
     """Convert text to speech with a given voice and save the output audio file to a given directory.
 
     Args:
-        text (str): The text to convert to speech
-        voice_id (str, optional): The ID of the voice to use, if not provided uses first available voice
-        output_path (str, optional): Directory where files should be saved.
+        text (str): The text to convert to speech.
+        voice_name (str, optional): The name of the voice to use, if not provided uses the "Adam" voice.
+        stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion.
+        similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it.
+        style (float, optional): Style of the generated audio. Determines the style exaggeration of the voice. This setting attempts to amplify the style of the original speaker. It does consume additional computational resources and might increase latency if set to anything other than 0.
+        use_speaker_boost (bool, optional): Use speaker boost of the generated audio. This setting boosts the similarity to the original speaker. Using this setting requires a slightly higher computational load, which in turn increases latency.
+        speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.7 to 1.2, with 1.0 being the default speed. Lower values create slower, more deliberate speech while higher values produce faster-paced speech. Extreme values can impact the quality of the generated speech.
+        output_directory (str, optional): Directory where files should be saved.
             Defaults to $HOME/Desktop if not provided.
 
     Returns:
         List containing text content and audio data as embedded resource
     """
-    voices = client.voices.get_all()
-    voice_ids = [voice.voice_id for voice in voices.voices]
-    if len(voice_ids) == 0:
-        make_error("No voices found")
-    if voice_id == "":
-        voice_id = voice_ids[0]
-    elif voice_id not in voice_ids:
-        make_error(f"Voice with id: {voice_id} does not exist.")
+    if text == "":
+        make_error("Text is required.")
+
+    voices = client.voices.search(search=voice_name)
+
+    if len(voices.voices) == 0:
+        make_error("No voices found with that name.")
+
+    voice = next((v for v in voices.voices if v.name == voice_name), None)
+
+    if voice is None:
+        make_error(f"Voice with name: {voice_name} does not exist.")
 
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("tts", text, output_path, "mp3")
 
     audio_data = client.text_to_speech.convert(
         text=text,
-        voice_id=voice_id,
+        voice_id=voice.voice_id,
         model_id="eleven_multilingual_v2",
         output_format="mp3_44100_128",
+        voice_settings={
+            "stability": stability,
+            "similarity_boost": similarity_boost,
+            "style": style,
+            "use_speaker_boost": use_speaker_boost,
+            "speed": speed,
+        },
     )
     audio_bytes = b"".join(audio_data)
 
@@ -71,7 +93,7 @@ def text_to_speech(
 
     return TextContent(
         type="text",
-        text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice_id}",
+        text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice.name}",
     )
 
 
@@ -125,7 +147,7 @@ def speech_to_text(
 
 
 @mcp.tool(
-    description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory. 
+    description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory.
     Directory is optional, if not provided, the output file will be saved to $HOME/Desktop of a user.
     Duration must be between 0.5 and 5 seconds."""
 )
@@ -171,6 +193,29 @@ def list_voices() -> list[McpVoice]:
 def get_voices() -> list[McpVoice]:
     """Get a list of all available voices."""
     response = client.voices.get_all()
+    return [
+        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
+        for voice in response.voices
+    ]
+
+
+@mcp.tool(description="Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category.")
+def search_voices(
+    search: str | None = None,
+    sort: Literal["created_at_unix", "name"] = "name",
+    sort_direction: Literal["asc", "desc"] = "desc",
+) -> list[McpVoice]:
+    """Search for voices.
+
+    Args:
+        search: Search term to filter voices by. Searches in name, description, labels and category.
+        sort: Which field to sort by. `created_at_unix` might not be available for older voices.
+        sort_direction: Sort order, either ascending or descending.
+
+    Returns:
+        List of voices that match the search criteria.
+    """
+    response = client.voices.search(search=search, sort=sort, sort_direction=sort_direction)
     return [
         McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
         for voice in response.voices

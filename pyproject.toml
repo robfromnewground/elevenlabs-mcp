@@ -4,16 +4,16 @@ version = "0.1.0"
 description = "Eleven Labs MCP Server"
 requires-python = ">=3.11,<3.13"
 dependencies = [
-    "mcp>=0.1.0",
+    "mcp[cli]>=0.1.0",
     "fastapi==0.109.2",
     "uvicorn==0.27.1",
     "python-dotenv==1.0.1",
     "pydantic>=2.6.1",
     "httpx==0.28.1",
-    "elevenlabs>=1.54.0",
+    "elevenlabs>=1.56.0",
     "python-magic>=0.4.27",
     "fuzzywuzzy==0.18.0",
-    "python-Levenshtein>=0.25.0"
+    "python-Levenshtein>=0.25.0",
 ]
 
 [project.optional-dependencies]
