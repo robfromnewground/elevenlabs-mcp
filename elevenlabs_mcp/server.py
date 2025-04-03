@@ -528,6 +528,10 @@ def speech_to_speech(
 @mcp.tool(
     description="""Create voice previews from a text prompt. Creates three previews with slight variations. Saves the previews to a given directory. If no text is provided, the tool will auto-generate text.
 
+    Voice preview files are saved as: voice_design_(generated_voice_id)_(timestamp).mp3
+
+    Example file name: voice_design_Ya2J5uIa5Pq14DNPsbC1_20250403_164949.mp3
+
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
     """
 )
@@ -548,11 +552,13 @@ def text_to_voice(
     output_path = make_output_path(output_directory, base_path)
 
     generated_voice_ids = []
+    output_file_paths = []
 
     for preview in previews.previews:
         output_file_name = make_output_file(
             "voice_design", preview.generated_voice_id, output_path, "mp3", full_id=True
         )
+        output_file_paths.append(output_file_name)
         generated_voice_ids.append(preview.generated_voice_id)
         audio_bytes = base64.b64decode(preview.audio_base_64)
 
@@ -561,7 +567,7 @@ def text_to_voice(
 
     return TextContent(
         type="text",
-        text=f"Success. Files saved at: {output_path}. Generated voice IDs are: {', '.join(generated_voice_ids)}",
+        text=f"Success. Files saved at: {', '.join(output_file_paths)}. Generated voice IDs are: {', '.join(generated_voice_ids)}",
     )
 
 
