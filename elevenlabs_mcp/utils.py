@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from datetime import datetime
-import magic
 from fuzzywuzzy import fuzz
 
 
@@ -85,15 +84,30 @@ def try_find_similar_files(
     similar_files = find_similar_filenames(filename, directory)
     if not similar_files:
         return []
-    mime = magic.Magic(mime=True)
+
     filtered_files = []
 
     for path, _ in similar_files[:take_n]:
-        file_type = mime.from_file(str(path))
-        if file_type.startswith(("audio/", "video/")):
+        if check_audio_file(path):
             filtered_files.append(path)
 
     return filtered_files
+
+
+def check_audio_file(path: Path) -> bool:
+    audio_extensions = {
+        ".wav",
+        ".mp3",
+        ".m4a",
+        ".aac",
+        ".ogg",
+        ".flac",
+        ".mp4",
+        ".avi",
+        ".mov",
+        ".wmv",
+    }
+    return path.suffix.lower() in audio_extensions
 
 
 def handle_input_file(file_path: str, audio_content_check: bool = True) -> Path:
@@ -116,9 +130,6 @@ def handle_input_file(file_path: str, audio_content_check: bool = True) -> Path:
     elif not path.is_file():
         make_error(f"File ({path}) is not a file")
 
-    mime = magic.Magic(mime=True)
-    file_type = mime.from_file(str(path))
-
-    if audio_content_check and not file_type.startswith(("audio/", "video/")):
+    if audio_content_check and not check_audio_file(path):
         make_error(f"File ({path}) is not an audio or video file")
     return path
