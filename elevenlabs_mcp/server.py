@@ -11,9 +11,11 @@ Each tool that makes an API call is marked with a cost warning. Please follow th
 Tools without cost warnings in their description are free to use as they only read existing data.
 """
 
-from datetime import datetime
+import httpx
 import os
 import base64
+from datetime import datetime
+from io import BytesIO
 from typing import Literal
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
@@ -28,8 +30,9 @@ from elevenlabs_mcp.utils import (
 )
 from elevenlabs_mcp.convai import create_conversation_config, create_platform_settings
 from elevenlabs.types.knowledge_base_locator import KnowledgeBaseLocator
-from io import BytesIO
+
 from elevenlabs import play
+from elevenlabs_mcp import __version__
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -39,7 +42,14 @@ DEFAULT_VOICE_ID = "9BWtsMINqrJLrRacOk9x"
 if not api_key:
     raise ValueError("ELEVENLABS_API_KEY environment variable is required")
 
-client = ElevenLabs(api_key=api_key)
+# Add custom client to ElevenLabs to set User-Agent header
+custom_client = httpx.Client(
+    headers={
+        "User-Agent": f"ElevenLabs-MCP/{__version__}",
+    }
+)
+
+client = ElevenLabs(api_key=api_key, httpx_client=custom_client)
 mcp = FastMCP("ElevenLabs")
 
 
