@@ -12,7 +12,15 @@ Official Eleven Labs Model Context Protocol (MCP) server that enables interactio
 
 1. Get your API key from [Eleven Labs](https://elevenlabs.io/). You'll need an account to access the API.
 
-2. Generate Claude configuration file:
+2. Clone this repo locally
+
+3. Copy `.env.example` to `.env` and add your ElevenLabs API key:
+```bash
+cp .env.example .env
+# Edit .env and add your API key
+```
+
+4. Generate Claude configuration file:
 * Create virtual env in this directory: `uv init && uv venv`
 * Source the virtualenv: `source .venv bin/activate`
 * Install the development version: `uv pip install -e ".[dev]"`
@@ -22,7 +30,7 @@ Official Eleven Labs Model Context Protocol (MCP) server that enables interactio
 
 Output files will be saved by default in `$HOME/Desktop` directory. All tools accept an optional `output_directory` to set the output path. If `ELEVENLABS_MCP_BASE_PATH` is not set, the `output_directory` must be an *absolute* path. If the environment variable is set, relative paths will be used to save outputs in directory specified by `ELEVENLABS_MCP_BASE_PATH`.
 
-3. Restart the MCP client.
+5. Restart the MCP client.
 
 That's it! Your MCP client can now interact with Eleven Labs through these tools:
 
@@ -63,7 +71,7 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-3. Copy `.env.example` to `.env` and add your Eleven Labs API key:
+3. Copy `.env.example` to `.env` and add your ElevenLabs API key:
 ```bash
 cp .env.example .env
 # Edit .env and add your API key

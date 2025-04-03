@@ -1,13 +1,23 @@
+"""
+ElevenLabs MCP Server
+
+⚠️ IMPORTANT: This server provides access to ElevenLabs API endpoints which may incur costs.
+Each tool that makes an API call is marked with a cost warning. Please follow these guidelines:
+
+1. Only use tools when explicitly requested by the user
+2. For tools that generate audio, consider the length of the text as it affects costs
+3. Some operations like voice cloning or text-to-voice may have higher costs
+
+Tools without cost warnings in their description are free to use as they only read existing data.
+"""
+
 from datetime import datetime
 import os
 import base64
 from typing import Literal
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from mcp.types import (
-    TextContent,
-    EmbeddedResource,
-)
+from mcp.types import TextContent
 from elevenlabs.client import ElevenLabs
 from elevenlabs_mcp.model import McpVoice
 from elevenlabs_mcp.utils import (
@@ -36,7 +46,10 @@ mcp = FastMCP("ElevenLabs")
 @mcp.tool(
     description="""Convert text to speech with a given voice and save the output audio file to a given directory.
     Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-    Only one of voice_id or voice_name can be provided. If no are provided, the default voice will be used."""
+    Only one of voice_id or voice_name can be provided. If none are provided, the default voice will be used.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def text_to_speech(
     text: str,
@@ -63,7 +76,7 @@ def text_to_speech(
             Defaults to $HOME/Desktop if not provided.
 
     Returns:
-        List containing text content and audio data as embedded resource
+        Text content with the path to the output file and name of the voice used.
     """
     if text == "":
         make_error("Text is required.")
@@ -113,7 +126,10 @@ def text_to_speech(
 
 
 @mcp.tool(
-    description="Transcribe speech from an audio file and either save the output text file to a given directory or return the text to the client directly."
+    description="""Transcribe speech from an audio file and either save the output text file to a given directory or return the text to the client directly.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def speech_to_text(
     input_file_path: str,
@@ -162,13 +178,16 @@ def speech_to_text(
 
 
 @mcp.tool(
-    description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory. 
+    description="""Convert text description of a sound effect to sound effect with a given duration and save the output audio file to a given directory.
     Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
-    Duration must be between 0.5 and 5 seconds."""
+    Duration must be between 0.5 and 5 seconds.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def text_to_sound_effects(
     text: str, duration_seconds: float = 2.0, output_directory: str | None = None
-) -> list[TextContent | EmbeddedResource]:
+) -> list[TextContent]:
     if duration_seconds < 0.5 or duration_seconds > 5:
         make_error("Duration must be between 0.5 and 5 seconds")
     output_path = make_output_path(output_directory, base_path)
@@ -193,7 +212,6 @@ def text_to_sound_effects(
 @mcp.tool(description="List all available voices")
 def list_voices() -> list[McpVoice]:
     """List all available voices.
-
     Returns:
         A formatted list of available voices with their IDs and names
     """
@@ -204,17 +222,6 @@ def list_voices() -> list[McpVoice]:
     ]
 
 
-@mcp.resource("voices://list")
-def get_voices() -> list[McpVoice]:
-    """Get a list of all available voices."""
-    response = client.voices.get_all()
-    return [
-        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
-        for voice in response.voices
-    ]
-
-
-@mcp.tool(description="Get details of a specific voice.")
 @mcp.tool(
     description="Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category."
 )
@@ -242,7 +249,7 @@ def search_voices(
     ]
 
 
-@mcp.resource("voice://{voice_id}")
+@mcp.tool(description="Get details of a specific voice")
 def get_voice(voice_id: str) -> McpVoice:
     """Get details of a specific voice."""
     response = client.voices.get(voice_id=voice_id)
@@ -254,7 +261,12 @@ def get_voice(voice_id: str) -> McpVoice:
     )
 
 
-@mcp.tool(description="Clone a voice using provided audio files")
+@mcp.tool(
+    description="""Clone a voice using provided audio files.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
+)
 def voice_clone(
     name: str, files: list[str], description: str | None = None
 ) -> TextContent:
@@ -270,12 +282,15 @@ def voice_clone(
 
 
 @mcp.tool(
-    description="""Isolate audio from a file and save the output audio file to a given directory. 
-    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop."""
+    description="""Isolate audio from a file and save the output audio file to a given directory.
+    Directory is optional, if not provided, the output file will be saved to $HOME/Desktop.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def isolate_audio(
     input_file_path: str, output_directory: str | None = None
-) -> list[TextContent | EmbeddedResource]:
+) -> list[TextContent]:
     file_path = handle_input_file(input_file_path)
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("iso", file_path.name, output_path, "mp3")
@@ -303,7 +318,12 @@ def check_subscription() -> TextContent:
     return TextContent(type="text", text=f"{subscription.model_dump_json(indent=2)}")
 
 
-@mcp.tool(description="Create a conversational AI agent with custom configuration")
+@mcp.tool(
+    description="""Create a conversational AI agent with custom configuration.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
+)
 def create_agent(
     name: str,
     system_prompt: str,
@@ -358,7 +378,10 @@ def create_agent(
 
 
 @mcp.tool(
-    description="Add a knowledge base to ElevenLabs workspace. Allowed types are epub, pdf, docx, txt, html."
+    description="""Add a knowledge base to ElevenLabs workspace. Allowed types are epub, pdf, docx, txt, html.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def add_knowledge_base_to_agent(
     agent_id: str,
@@ -449,12 +472,15 @@ def get_agent(agent_id: str) -> TextContent:
 
 
 @mcp.tool(
-    description="Transform audio from one voice to another using provided audio files"
+    description="""Transform audio from one voice to another using provided audio files.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def speech_to_speech(
     input_file_path: str,
     voice_name: str = "Adam",
-    output_directory: str = "",
+    output_directory: str | None = None,
 ) -> TextContent:
     voices = client.voices.search(search=voice_name)
 
@@ -490,12 +516,15 @@ def speech_to_speech(
 
 
 @mcp.tool(
-    description="Create voice previews from a text prompt. Creates three previews with slight variations. Saves the previews to a given directory. If no text is provided, the tool will auto-generate text."
+    description="""Create voice previews from a text prompt. Creates three previews with slight variations. Saves the previews to a given directory. If no text is provided, the tool will auto-generate text.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def text_to_voice(
     voice_description: str,
     text: str | None = None,
-    output_directory: str = "",
+    output_directory: str | None = None,
 ) -> TextContent:
     if voice_description == "":
         make_error("Voice description is required.")
@@ -527,7 +556,10 @@ def text_to_voice(
 
 
 @mcp.tool(
-    description="Add a generated voice to the voice library. Uses the voice ID from the `text_to_voice` tool."
+    description="""Add a generated voice to the voice library. Uses the voice ID from the `text_to_voice` tool.
+
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
 )
 def create_voice_from_preview(
     generated_voice_id: str,
