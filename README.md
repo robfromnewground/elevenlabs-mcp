@@ -1,36 +1,22 @@
 # Eleven Labs MCP Server
 
-[![smithery badge](https://smithery.ai/badge/@jacekduszenko/elevenlabs-mcp)](https://smithery.ai/server/@jacekduszenko/elevenlabs-mcp)
+[![Discord](https://badgen.net/badge/black/ElevenLabs/icon?icon=discord&label)](https://discord.gg/elevenlabs)
+[![X](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://twitter.com/ElevenLabsDevs)
+![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp) ![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)
+
 
 Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
 
-<a href="https://glama.ai/mcp/servers/elevenlabs-mcp">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/elevenlabs-mcp/badge" alt="Eleven Labs MCP server" />
-</a>
-
 ## Quick Start with Claude
 
-1. Get your API key from [Eleven Labs](https://elevenlabs.io/). You'll need an account to access the API.
+1. Get your API key from [Eleven Labs](https://elevenlabs.io/). There is a generous free tier of 10k credits per month.
+2. Install `elevenlabs_mcp` module with `pip install elevenlabs-mcp`.
+3. Install the MCP server in Claude Desktop by running `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}}`.
+4. Restart Claude Desktop.
 
-2. Clone this repo locally
+## Other MCP clients
+For other clients like Cursor and Windsurf, run `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}} --print` to get the configuration. Paste it into appropriate configuration directory specified by your MCP client.
 
-3. Copy `.env.example` to `.env` and add your ElevenLabs API key:
-```bash
-cp .env.example .env
-# Edit .env and add your API key
-```
-
-4. Generate Claude configuration file:
-* Create virtual env in this directory: `uv init && uv venv`
-* Source the virtualenv: `source .venv bin/activate`
-* Install the development version: `uv pip install -e ".[dev]"`
-* For Claude, run this script to create the configuration file and place it in Claude directory: `python install.py`
-* For other MCP clients, get the script output and put it in corresponding MCP configuration directory specific to each client: `python install.py --print`
-
-
-Output files will be saved by default in `$HOME/Desktop` directory. All tools accept an optional `output_directory` to set the output path. If `ELEVENLABS_MCP_BASE_PATH` is not set, the `output_directory` must be an *absolute* path. If the environment variable is set, relative paths will be used to save outputs in directory specified by `ELEVENLABS_MCP_BASE_PATH`.
-
-5. Restart the MCP client.
 
 That's it! Your MCP client can now interact with Eleven Labs through these tools:
 
@@ -53,6 +39,11 @@ Try asking Claude:
 - "What voices are available for text-to-speech?"
 - "Can you transcribe this audio file for me?"
 - "Generate some rain sound effects"
+
+
+## Optional features
+
+You can add the `ELEVENLABS_MCP_BASE_PATH` environment variable to the `claude_desktop_config.json` to specify the base path MCP server should look for and output files specified with relative paths.
 
 ## Contributing
 
@@ -80,11 +71,6 @@ cp .env.example .env
 4. Install the mcp cli:
 ```bash
 uv add "mcp[cli]"
-```
-
-5 Install `libmagic`
-```bash
-brew install libmagic
 ```
 
 6. Install the server in Claude Desktop: `mcp install server.py`.

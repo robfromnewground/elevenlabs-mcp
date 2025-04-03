@@ -9,3 +9,6 @@
 .venv
 .cursor
 .cursorignore
+dist/
+elevenlabs_mcp.egg-info/
+.coverage
