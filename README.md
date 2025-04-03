@@ -59,7 +59,7 @@ cd elevenlabs-mcp
 ```bash
 uv venv
 source .venv/bin/activate
-uv pip install -e .
+uv pip install -e ".[dev]"
 ```
 
 3. Copy `.env.example` to `.env` and add your ElevenLabs API key:
@@ -68,14 +68,9 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
-4. Install the mcp cli:
-```bash
-uv add "mcp[cli]"
-```
+4. Install the server in Claude Desktop: `mcp install server.py`.
 
-6. Install the server in Claude Desktop: `mcp install server.py`.
-
-7. Debug and test locally with MCP Inspector: `mcp dev server.py`
+5. Debug and test locally with MCP Inspector: `mcp dev server.py`
 
 ## Requirements
 
