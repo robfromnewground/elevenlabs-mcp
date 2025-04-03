@@ -17,10 +17,7 @@ import base64
 from typing import Literal
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
-from mcp.types import (
-    TextContent,
-    EmbeddedResource,
-)
+from mcp.types import TextContent
 from elevenlabs.client import ElevenLabs
 from elevenlabs_mcp.model import McpVoice
 from elevenlabs_mcp.utils import (
@@ -79,7 +76,7 @@ def text_to_speech(
             Defaults to $HOME/Desktop if not provided.
 
     Returns:
-        List containing text content and audio data as embedded resource
+        Text content with the path to the output file and name of the voice used.
     """
     if text == "":
         make_error("Text is required.")
@@ -190,7 +187,7 @@ def speech_to_text(
 )
 def text_to_sound_effects(
     text: str, duration_seconds: float = 2.0, output_directory: str | None = None
-) -> list[TextContent | EmbeddedResource]:
+) -> list[TextContent]:
     if duration_seconds < 0.5 or duration_seconds > 5:
         make_error("Duration must be between 0.5 and 5 seconds")
     output_path = make_output_path(output_directory, base_path)
@@ -293,7 +290,7 @@ def voice_clone(
 )
 def isolate_audio(
     input_file_path: str, output_directory: str | None = None
-) -> list[TextContent | EmbeddedResource]:
+) -> list[TextContent]:
     file_path = handle_input_file(input_file_path)
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("iso", file_path.name, output_path, "mp3")
