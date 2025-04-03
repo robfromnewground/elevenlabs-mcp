@@ -1,8 +1,8 @@
 # Eleven Labs MCP Server
 
 [![Discord](https://badgen.net/badge/black/ElevenLabs/icon?icon=discord&label)](https://discord.gg/elevenlabs)
-[![X](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://twitter.com/ElevenLabsDevs)
-![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp) ![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)
+[![Twitter](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://x.com/ElevenLabsDevs)
+[![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp)](http://pypi.org/project/elevenlabs-mcp) [![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)](https://pypi.org/project/elevenlabs-mcp)
 
 
 Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
