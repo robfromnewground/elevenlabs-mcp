@@ -8,7 +8,7 @@ Each tool that makes an API call is marked with a cost warning. Please follow th
 2. For tools that generate audio, consider the length of the text as it affects costs
 3. Some operations like voice cloning or text-to-voice may have higher costs
 
-Resources (marked with @mcp.resource) are free to use as they only read existing data.
+Tools without cost warnings in their description are free to use as they only read existing data.
 """
 
 from datetime import datetime
@@ -212,12 +212,15 @@ def text_to_sound_effects(
     )
 
 
-@mcp.resource("voices://list")
-def get_voices() -> list[McpVoice]:
-    """Get a list of all available voices."""
+@mcp.tool(description="List all available voices")
+def list_voices() -> list[McpVoice]:
+    """List all available voices.
+    Returns:
+        A formatted list of available voices with their IDs and names
+    """
     response = client.voices.get_all()
     return [
-        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category, fine_tuning_status=voice.fine_tuning.state)
+        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
         for voice in response.voices
     ]
 
@@ -249,7 +252,7 @@ def search_voices(
     ]
 
 
-@mcp.resource("voice://{voice_id}")
+@mcp.tool(description="Get details of a specific voice")
 def get_voice(voice_id: str) -> McpVoice:
     """Get details of a specific voice."""
     response = client.voices.get(voice_id=voice_id)
@@ -310,7 +313,9 @@ def isolate_audio(
     )
 
 
-@mcp.resource("subscription://status")
+@mcp.tool(
+    description="Check the current subscription status. Could be used to measure the usage of the API."
+)
 def check_subscription() -> TextContent:
     subscription = client.user.get_subscription()
     return TextContent(type="text", text=f"{subscription.model_dump_json(indent=2)}")
@@ -428,7 +433,7 @@ def add_knowledge_base_to_agent(
     )
 
 
-@mcp.resource("conversational-ai://agents")
+@mcp.tool(description="List all available conversational AI agents")
 def list_agents() -> TextContent:
     """List all available conversational AI agents.
 
@@ -447,7 +452,7 @@ def list_agents() -> TextContent:
     return TextContent(type="text", text=f"Available agents: {agent_list}")
 
 
-@mcp.resource("conversational_ai://{agent_id}")
+@mcp.tool(description="Get details about a specific conversational AI agent")
 def get_agent(agent_id: str) -> TextContent:
     """Get details about a specific conversational AI agent.
 
