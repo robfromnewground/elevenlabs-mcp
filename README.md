@@ -1,7 +1,7 @@
 # Eleven Labs MCP Server
 
 [![Discord](https://badgen.net/badge/black/ElevenLabs/icon?icon=discord&label)](https://discord.gg/elevenlabs)
-[![Twitter](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://twitter.com/elevenlabsio)
+[![X](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://twitter.com/ElevenLabsDevs)
 ![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp) ![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)
 
 
