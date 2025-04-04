@@ -28,9 +28,15 @@ That's it! Your MCP client can now interact with Eleven Labs through these tools
 - `check_subscription`: Check your Eleven Labs subscription status
 - `list_voices`: Get a list of all available voices
 - `search_voices`: Search through your voice library for a specific voice
+- `get_voice`: Retrieve a specific voice by ID
 - `speech_to_speech`: Transform audio from one voice to another using provided audio files
 - `text_to_voice`: Design a voice via a text prompt
 - `create_voice_from_preview`: Using an ID from `text_to_voice`, save your generated to your library
+- `create_agent`: Create a Conversational AI agent
+- `list_agents`: Retrieve a list of all available Conversational AI agents
+- `get_agent`: Retrieve a specific agent by ID
+- `add_knowledge_base_to_agent`: Add knowledge to your Conversational AI agent. Useful for piping LLM deep research into an agent's knowledge base
+- `play_audio`: Play audio directly from the client
 
 ## Example Usage
 
@@ -39,6 +45,8 @@ Try asking Claude:
 - "What voices are available for text-to-speech?"
 - "Can you transcribe this audio file for me?"
 - "Generate some rain sound effects"
+- "Play that generated voice clip for me"
+- "Generate the voice of a jolly giant"
 
 
 ## Optional features
@@ -55,7 +63,7 @@ git clone https://github.com/jacekduszenko/elevenlabs-mcp.git
 cd elevenlabs-mcp
 ```
 
-2. Create a virtual environment and install dependencies:
+2. Create a virtual environment and install dependencies [using uv](https://github.com/astral-sh/uv):
 ```bash
 uv venv
 source .venv/bin/activate
