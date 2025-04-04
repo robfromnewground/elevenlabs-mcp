@@ -558,7 +558,7 @@ def text_to_voice(
         output_file_name = make_output_file(
             "voice_design", preview.generated_voice_id, output_path, "mp3", full_id=True
         )
-        output_file_paths.append(output_file_name)
+        output_file_paths.append(str(output_file_name))
         generated_voice_ids.append(preview.generated_voice_id)
         audio_bytes = base64.b64decode(preview.audio_base_64)
 
