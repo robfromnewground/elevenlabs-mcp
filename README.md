@@ -59,7 +59,7 @@ If you want to contribute or run from source:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/jacekduszenko/elevenlabs-mcp.git
+git clone https://github.com/elevenlabs/elevenlabs-mcp-server
 cd elevenlabs-mcp
 ```
 
