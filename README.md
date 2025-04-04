@@ -76,9 +76,9 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
-4. Install the server in Claude Desktop: `mcp install server.py`.
+4. Install the server in Claude Desktop: `mcp install elevenlabs_mcp/server.py`
 
-5. Debug and test locally with MCP Inspector: `mcp dev server.py`
+5. Debug and test locally with MCP Inspector: `mcp dev elevenlabs_mcp/server.py`
 
 ## Requirements
 
