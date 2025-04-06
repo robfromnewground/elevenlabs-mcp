@@ -4,7 +4,6 @@
 [![Twitter](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://x.com/ElevenLabsDevs)
 [![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp)](http://pypi.org/project/elevenlabs-mcp) [![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)](https://pypi.org/project/elevenlabs-mcp)
 
-
 Official ElevenLabs Model Context Protocol (MCP) server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
 
 ## Quick Start with Claude
@@ -15,8 +14,8 @@ Official ElevenLabs Model Context Protocol (MCP) server that enables interaction
 4. Restart Claude Desktop.
 
 ## Other MCP clients
-For other clients like Cursor and Windsurf, run `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}} --print` to get the configuration. Paste it into appropriate configuration directory specified by your MCP client.
 
+For other clients like Cursor and Windsurf, run `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}} --print` to get the configuration. Paste it into appropriate configuration directory specified by your MCP client.
 
 That's it! Your MCP client can now interact with ElevenLabs through these tools:
 
@@ -41,13 +40,13 @@ That's it! Your MCP client can now interact with ElevenLabs through these tools:
 ## Example Usage
 
 Try asking Claude:
+
 - "Can you convert this text to speech using a British accent?"
 - "What voices are available for text-to-speech?"
 - "Can you transcribe this audio file for me?"
 - "Generate some rain sound effects"
 - "Play that generated voice clip for me"
 - "Generate the voice of a jolly giant"
-
 
 ## Optional features
 
@@ -58,12 +57,14 @@ You can add the `ELEVENLABS_MCP_BASE_PATH` environment variable to the `claude_d
 If you want to contribute or run from source:
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/elevenlabs/elevenlabs-mcp-server
-cd elevenlabs-mcp
+cd elevenlabs-mcp-server
 ```
 
 2. Create a virtual environment and install dependencies [using uv](https://github.com/astral-sh/uv):
+
 ```bash
 uv venv
 source .venv/bin/activate
@@ -71,6 +72,7 @@ uv pip install -e ".[dev]"
 ```
 
 3. Copy `.env.example` to `.env` and add your ElevenLabs API key:
+
 ```bash
 cp .env.example .env
 # Edit .env and add your API key
@@ -95,6 +97,7 @@ cp .env.example .env
 ## Troubleshooting
 
 Logs when running with Claude Desktop can be found at:
+
 - **Windows**: `%APPDATA%\Claude\logs\mcp-server-elevenlabs.log`
 - **macOS**: `~/Library/Logs/Claude/mcp-server-elevenlabs.log`
 
