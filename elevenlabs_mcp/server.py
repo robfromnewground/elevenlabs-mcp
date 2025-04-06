@@ -631,5 +631,41 @@ def list_phone_numbers() -> TextContent:
     return TextContent(type="text", text=f"Phone Numbers:\n\n{formatted_info}")
 
 
+@mcp.tool(
+    description="""Make an outbound call via Twilio using an ElevenLabs agent.
+    
+    ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+    """
+)
+def make_outbound_call(
+    agent_id: str,
+    agent_phone_number_id: str,
+    to_number: str,
+) -> TextContent:
+    """Make an outbound call via Twilio using an ElevenLabs agent.
+    
+    Args:
+        agent_id: The ID of the agent that will handle the call
+        agent_phone_number_id: The ID of the phone number to use for the call
+        to_number: The phone number to call (E.164 format: +1xxxxxxxxxx)
+        
+    Returns:
+        TextContent containing information about the call
+    """
+    response = client.conversational_ai.twilio_outbound_call(
+        agent_id=agent_id,
+        agent_phone_number_id=agent_phone_number_id,
+        to_number=to_number,
+    )
+    
+    call_sid = response.get("callSid", "N/A")
+    message = response.get("message", "Call initiated successfully")
+    
+    return TextContent(
+        type="text",
+        text=f"Outbound call initiated: {message}. Call SID: {call_sid}"
+    )
+
+
 if __name__ == "__main__":
     mcp.run()
