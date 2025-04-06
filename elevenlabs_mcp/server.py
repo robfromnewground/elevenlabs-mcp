@@ -628,6 +628,36 @@ def make_outbound_call(
         text=f"Outbound call initiated: {message}. Call SID: {call_sid}"
     )
 
+@mcp.tool(description="List all phone numbers associated with the ElevenLabs account")
+def list_phone_numbers() -> TextContent:
+    """List all phone numbers associated with the ElevenLabs account.
+    
+    Returns:
+        TextContent containing formatted information about the phone numbers
+    """
+    response = client.conversational_ai.get_phone_numbers()
+    
+    if not response:
+        return TextContent(type="text", text="No phone numbers found.")
+    
+    phone_info = []
+    for phone in response:
+        assigned_agent = "None"
+        if phone.assigned_agent:
+            assigned_agent = f"{phone.assigned_agent.agent_name} (ID: {phone.assigned_agent.agent_id})"
+        
+        phone_info.append(
+            f"Phone Number: {phone.phone_number}\n"
+            f"ID: {phone.phone_number_id}\n"
+            f"Provider: {phone.provider}\n"
+            f"Label: {phone.label}\n"
+            f"Assigned Agent: {assigned_agent}"
+        )
+    
+    formatted_info = "\n\n".join(phone_info)
+    return TextContent(type="text", text=f"Phone Numbers:\n\n{formatted_info}")
+
+
 @mcp.tool(description="Play an audio file. Supports WAV and MP3 formats.")
 def play_audio(input_file_path: str) -> TextContent:
     file_path = handle_input_file(input_file_path)
