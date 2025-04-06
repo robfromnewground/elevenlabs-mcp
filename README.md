@@ -1,15 +1,15 @@
-# Eleven Labs MCP Server
+# ElevenLabs MCP Server
 
 [![Discord](https://badgen.net/badge/black/ElevenLabs/icon?icon=discord&label)](https://discord.gg/elevenlabs)
 [![Twitter](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://x.com/ElevenLabsDevs)
 [![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp)](http://pypi.org/project/elevenlabs-mcp) [![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)](https://pypi.org/project/elevenlabs-mcp)
 
 
-Official Eleven Labs Model Context Protocol (MCP) server that enables interaction with powerful text-to-speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
+Official ElevenLabs Model Context Protocol (MCP) server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
 
 ## Quick Start with Claude
 
-1. Get your API key from [Eleven Labs](https://elevenlabs.io/). There is a generous free tier of 10k credits per month.
+1. Get your API key from [ElevenLabs](https://elevenlabs.io/). There is a free tier with 10k credits per month.
 2. Install `elevenlabs_mcp` module with `pip install elevenlabs-mcp`.
 3. Install the MCP server in Claude Desktop by running `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}}`.
 4. Restart Claude Desktop.
@@ -18,14 +18,14 @@ Official Eleven Labs Model Context Protocol (MCP) server that enables interactio
 For other clients like Cursor and Windsurf, run `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}} --print` to get the configuration. Paste it into appropriate configuration directory specified by your MCP client.
 
 
-That's it! Your MCP client can now interact with Eleven Labs through these tools:
+That's it! Your MCP client can now interact with ElevenLabs through these tools:
 
 - `text_to_speech`: Convert text to speech using a specified voice
 - `voice_clone`: Clone a voice using provided audio files
 - `speech_to_text`: Transcribe speech from an audio file
 - `text_to_sound_effects`: Generate sound effects from text descriptions
 - `isolate_audio`: Isolate audio from a file
-- `check_subscription`: Check your Eleven Labs subscription status
+- `check_subscription`: Check your ElevenLabs subscription status
 - `list_voices`: Get a list of all available voices
 - `search_voices`: Search through your voice library for a specific voice
 - `get_voice`: Retrieve a specific voice by ID
