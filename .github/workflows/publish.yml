@@ -36,6 +36,14 @@ jobs:
             exit 1
           fi
 
+      - name: Install dependencies
+        run: |
+          uv pip install --system -e ".[dev]"
+
+      - name: Run tests
+        run: |
+          uv run pytest --cov=elevenlabs_mcp
+
       - name: Build package
         run: |
           uv build
