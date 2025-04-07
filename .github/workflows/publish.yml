@@ -38,7 +38,7 @@ jobs:
 
       - name: Build package
         run: |
-          uv build --system
+          uv build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
