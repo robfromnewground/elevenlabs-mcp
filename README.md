@@ -103,18 +103,6 @@ cp .env.example .env
 
 6. Debug and test locally with MCP Inspector: `mcp dev elevenlabs_mcp/server.py`
 
-## Requirements
-
-- Python 3.11 or higher
-- Dependencies:
-  - mcp>=0.1.0
-  - fastapi==0.109.2
-  - uvicorn==0.27.1
-  - python-dotenv==1.0.1
-  - pydantic>=2.6.1
-  - httpx==0.28.1
-  - elevenlabs>=1.56.0
-
 ## Troubleshooting
 
 Logs when running with Claude Desktop can be found at:
