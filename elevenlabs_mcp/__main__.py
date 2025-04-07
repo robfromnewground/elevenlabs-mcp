@@ -85,7 +85,7 @@ if __name__ == "__main__":
         claude_path = args.config_path if args.config_path else get_claude_config_path()
         if claude_path is None:
             print(
-                "Could not find Claude config path automatically. Please specify it using --config-path argument. The argument be an absolute path of the claude_desktop_config.json file."
+                "Could not find Claude config path automatically. Please specify it using --config-path argument. The argument should be an absolute path of the claude_desktop_config.json file."
             )
             sys.exit(1)
 
