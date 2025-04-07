@@ -1,11 +1,18 @@
-# ElevenLabs MCP Server
+![export](https://github.com/user-attachments/assets/ee379feb-348d-48e7-899c-134f7f7cd74f)
 
-[![Discord](https://badgen.net/badge/black/ElevenLabs/icon?icon=discord&label)](https://discord.gg/elevenlabs)
-[![Twitter](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://x.com/ElevenLabsDevs)
-[![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp)](http://pypi.org/project/elevenlabs-mcp) [![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)](https://pypi.org/project/elevenlabs-mcp)
-[![Tests](https://github.com/elevenlabs/elevenlabs-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/elevenlabs/elevenlabs-mcp-server/actions/workflows/test.yml)
+<div class="title-block" style="text-align: center;" align="center">
 
-Official ElevenLabs Model Context Protocol (MCP) server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
+  [![Discord Community](https://img.shields.io/badge/discord-@elevenlabs-000000.svg?style=for-the-badge&logo=discord&labelColor=000)](https://discord.gg/elevenlabs)
+  [![Twitter](https://img.shields.io/badge/Twitter-@elevenlabsio-000000.svg?style=for-the-badge&logo=twitter&labelColor=000)](https://x.com/ElevenLabsDevs)
+  [![PyPI](https://img.shields.io/badge/PyPI-elevenlabs--mcp-000000.svg?style=for-the-badge&logo=pypi&labelColor=000)](https://pypi.org/project/elevenlabs-mcp)
+  [![Tests](https://img.shields.io/badge/tests-passing-000000.svg?style=for-the-badge&logo=github&labelColor=000)](https://github.com/elevenlabs/elevenlabs-mcp-server/actions/workflows/test.yml)
+
+</div>
+
+
+<p align="center">
+  Official ElevenLabs Model Context Protocol (MCP) server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to generate speech, clone voices, transcribe audio, and more.
+</p>
 
 ## Quick Start with Claude
 
