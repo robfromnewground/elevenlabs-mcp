@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish Python Package
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "v*"
 
 jobs:
-  publish:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,7 +38,7 @@ jobs:
 
       - name: Build package
         run: |
-          uv build
+          uv build --system
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
