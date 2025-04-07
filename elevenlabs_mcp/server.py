@@ -59,6 +59,20 @@ mcp = FastMCP("ElevenLabs")
     Only one of voice_id or voice_name can be provided. If none are provided, the default voice will be used.
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+
+     Args:
+        text (str): The text to convert to speech.
+        voice_name (str, optional): The name of the voice to use.
+        stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion. Range is 0 to 1.
+        similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it. Range is 0 to 1.
+        style (float, optional): Style of the generated audio. Determines the style exaggeration of the voice. This setting attempts to amplify the style of the original speaker. It does consume additional computational resources and might increase latency if set to anything other than 0. Range is 0 to 1.
+        use_speaker_boost (bool, optional): Use speaker boost of the generated audio. This setting boosts the similarity to the original speaker. Using this setting requires a slightly higher computational load, which in turn increases latency.
+        speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.7 to 1.2, with 1.0 being the default speed. Lower values create slower, more deliberate speech while higher values produce faster-paced speech. Extreme values can impact the quality of the generated speech. Range is 0.7 to 1.2.
+        output_directory (str, optional): Directory where files should be saved.
+            Defaults to $HOME/Desktop if not provided.
+
+    Returns:
+        Text content with the path to the output file and name of the voice used.
     """
 )
 def text_to_speech(
@@ -72,22 +86,6 @@ def text_to_speech(
     use_speaker_boost: bool = True,
     speed: float = 1.0,
 ):
-    """Convert text to speech with a given voice and save the output audio file to a given directory.
-
-    Args:
-        text (str): The text to convert to speech.
-        voice_name (str, optional): The name of the voice to use.
-        stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion.
-        similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it.
-        style (float, optional): Style of the generated audio. Determines the style exaggeration of the voice. This setting attempts to amplify the style of the original speaker. It does consume additional computational resources and might increase latency if set to anything other than 0.
-        use_speaker_boost (bool, optional): Use speaker boost of the generated audio. This setting boosts the similarity to the original speaker. Using this setting requires a slightly higher computational load, which in turn increases latency.
-        speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.7 to 1.2, with 1.0 being the default speed. Lower values create slower, more deliberate speech while higher values produce faster-paced speech. Extreme values can impact the quality of the generated speech.
-        output_directory (str, optional): Directory where files should be saved.
-            Defaults to $HOME/Desktop if not provided.
-
-    Returns:
-        Text content with the path to the output file and name of the voice used.
-    """
     if text == "":
         make_error("Text is required.")
 
@@ -139,6 +137,18 @@ def text_to_speech(
     description="""Transcribe speech from an audio file and either save the output text file to a given directory or return the text to the client directly.
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+
+    Args:
+        file_path: Path to the audio file to transcribe
+        language_code: ISO 639-3 language code for transcription (default: "eng" for English)
+        diarize: Whether to diarize the audio file. If True, which speaker is currently speaking will be annotated in the transcription.
+        save_transcript_to_file: Whether to save the transcript to a file.
+        return_transcript_to_client_directly: Whether to return the transcript to the client directly.
+        output_directory: Directory where files should be saved.
+            Defaults to $HOME/Desktop if not provided.
+
+    Returns:
+        TextContent containing the transcription. If save_transcript_to_file is True, the transcription will be saved to a file in the output directory.
     """
 )
 def speech_to_text(
@@ -149,15 +159,6 @@ def speech_to_text(
     return_transcript_to_client_directly: bool = False,
     output_directory: str | None = None,
 ) -> TextContent:
-    """Transcribe speech from an audio file using ElevenLabs API.
-
-    Args:
-        file_path: Path to the audio file to transcribe
-        language_code: Language code for transcription (default: "eng" for English)
-
-    Returns:
-        TextContent containing the transcription
-    """
     if not save_transcript_to_file and not return_transcript_to_client_directly:
         make_error("Must save transcript to file or return it to the client directly.")
     file_path = handle_input_file(input_file_path)
@@ -193,6 +194,12 @@ def speech_to_text(
     Duration must be between 0.5 and 5 seconds.
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+
+    Args:
+        text: Text description of the sound effect
+        duration_seconds: Duration of the sound effect in seconds
+        output_directory: Directory where files should be saved.
+            Defaults to $HOME/Desktop if not provided.
     """
 )
 def text_to_sound_effects(
@@ -233,14 +240,8 @@ def list_voices() -> list[McpVoice]:
 
 
 @mcp.tool(
-    description="Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category."
-)
-def search_voices(
-    search: str | None = None,
-    sort: Literal["created_at_unix", "name"] = "name",
-    sort_direction: Literal["asc", "desc"] = "desc",
-) -> list[McpVoice]:
-    """Search for voices.
+    description="""
+    Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category.
 
     Args:
         search: Search term to filter voices by. Searches in name, description, labels and category.
@@ -250,6 +251,12 @@ def search_voices(
     Returns:
         List of voices that match the search criteria.
     """
+)
+def search_voices(
+    search: str | None = None,
+    sort: Literal["created_at_unix", "name"] = "name",
+    sort_direction: Literal["asc", "desc"] = "desc",
+) -> list[McpVoice]:
     response = client.voices.search(
         search=search, sort=sort, sort_direction=sort_direction
     )
@@ -332,6 +339,25 @@ def check_subscription() -> TextContent:
     description="""Create a conversational AI agent with custom configuration.
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+
+    Args:
+        name: Name of the agent
+        system_prompt: System prompt for the agent
+        voice_id: ID of the voice to use for the agent
+        language: ISO 639-1 language code for the agent
+        llm: LLM to use for the agent
+        first_message: First message the agent will say
+        temperature: Temperature for the agent. The lower the temperature, the more deterministic the agent's responses will be. Range is 0 to 1.
+        max_tokens: Maximum number of tokens to generate.
+        asr_quality: Quality of the ASR. `high` or `low`.
+        model_id: ID of the ElevenLabsmodel to use for the agent.
+        optimize_streaming_latency: Optimize streaming latency. Range is 0 to 4.
+        stability: Stability for the agent. Range is 0 to 1.
+        similarity_boost: Similarity boost for the agent. Range is 0 to 1.
+        turn_timeout: Timeout for the agent to respond in seconds. Defaults to 7 seconds.
+        max_duration_seconds: Maximum duration of a conversation in seconds. Defaults to 600 seconds (10 minutes).
+        record_voice: Whether to record the agent's voice.
+        retention_days: Number of days to retain the agent's data.
     """
 )
 def create_agent(
@@ -391,6 +417,13 @@ def create_agent(
     description="""Add a knowledge base to ElevenLabs workspace. Allowed types are epub, pdf, docx, txt, html.
 
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+
+    Args:
+        agent_id: ID of the agent to add the knowledge base to.
+        knowledge_base_name: Name of the knowledge base.
+        url: URL of the knowledge base.
+        input_file_path: Path to the file to add to the knowledge base.
+        text: Text to add to the knowledge base.
     """
 )
 def add_knowledge_base_to_agent(
@@ -595,8 +628,16 @@ def create_voice_from_preview(
 
 @mcp.tool(
     description="""Make an outbound call via Twilio using an ElevenLabs agent.
-    
+
     ⚠️ COST WARNING: This tool makes an API call to ElevenLabs which may incur costs. Only use when explicitly requested by the user.
+
+    Args:
+        agent_id: The ID of the agent that will handle the call
+        agent_phone_number_id: The ID of the phone number to use for the call
+        to_number: The phone number to call (E.164 format: +1xxxxxxxxxx)
+
+    Returns:
+        TextContent containing information about the call
     """
 )
 def make_outbound_call(
@@ -604,25 +645,15 @@ def make_outbound_call(
     agent_phone_number_id: str,
     to_number: str,
 ) -> TextContent:
-    """Make an outbound call via Twilio using an ElevenLabs agent.
-    
-    Args:
-        agent_id: The ID of the agent that will handle the call
-        agent_phone_number_id: The ID of the phone number to use for the call
-        to_number: The phone number to call (E.164 format: +1xxxxxxxxxx)
-        
-    Returns:
-        TextContent containing information about the call
-    """
     response = client.conversational_ai.twilio_outbound_call(
         agent_id=agent_id,
         agent_phone_number_id=agent_phone_number_id,
         to_number=to_number,
     )
-    
+
     call_sid = response.get("callSid", "N/A")
     message = response.get("message", "Call initiated successfully")
-    
+
     return TextContent(
         type="text",
         text=f"Outbound call initiated: {message}. Call SID: {call_sid}"
@@ -631,21 +662,21 @@ def make_outbound_call(
 @mcp.tool(description="List all phone numbers associated with the ElevenLabs account")
 def list_phone_numbers() -> TextContent:
     """List all phone numbers associated with the ElevenLabs account.
-    
+
     Returns:
         TextContent containing formatted information about the phone numbers
     """
     response = client.conversational_ai.get_phone_numbers()
-    
+
     if not response:
         return TextContent(type="text", text="No phone numbers found.")
-    
+
     phone_info = []
     for phone in response:
         assigned_agent = "None"
         if phone.assigned_agent:
             assigned_agent = f"{phone.assigned_agent.agent_name} (ID: {phone.assigned_agent.agent_id})"
-        
+
         phone_info.append(
             f"Phone Number: {phone.phone_number}\n"
             f"ID: {phone.phone_number_id}\n"
@@ -653,7 +684,7 @@ def list_phone_numbers() -> TextContent:
             f"Label: {phone.label}\n"
             f"Assigned Agent: {assigned_agent}"
         )
-    
+
     formatted_info = "\n\n".join(phone_info)
     return TextContent(type="text", text=f"Phone Numbers:\n\n{formatted_info}")
 

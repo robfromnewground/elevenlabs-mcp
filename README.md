@@ -38,6 +38,9 @@ That's it! Your MCP client can now interact with ElevenLabs through these tools:
 - `list_agents`: Retrieve a list of all available Conversational AI agents
 - `get_agent`: Retrieve a specific agent by ID
 - `add_knowledge_base_to_agent`: Add knowledge to your Conversational AI agent. Useful for piping LLM deep research into an agent's knowledge base
+- `make_outbound_call` - Make an outbound call via Twilio using an ElevenLabs agent
+- `list_phone_numbers` - List all phone numbers associated with your ElevenLabs account
+
 - `play_audio`: Play audio directly from the client
 
 ## Example Usage
