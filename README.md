@@ -3,6 +3,7 @@
 [![Discord](https://badgen.net/badge/black/ElevenLabs/icon?icon=discord&label)](https://discord.gg/elevenlabs)
 [![Twitter](https://badgen.net/badge/black/elevenlabsio/icon?icon=twitter&label)](https://x.com/ElevenLabsDevs)
 [![PyPI - Format](https://img.shields.io/pypi/format/elevenlabs-mcp)](http://pypi.org/project/elevenlabs-mcp) [![PyPI - Version](https://img.shields.io/pypi/v/elevenlabs-mcp)](https://pypi.org/project/elevenlabs-mcp)
+[![Tests](https://github.com/elevenlabs/elevenlabs-mcp-server/actions/workflows/test.yml/badge.svg)](https://github.com/elevenlabs/elevenlabs-mcp-server/actions/workflows/test.yml)
 
 Official ElevenLabs Model Context Protocol (MCP) server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like [Claude Desktop](https://www.anthropic.com/claude), [Cursor](https://www.cursor.so), [Windsurf](https://codeium.com/windsurf), [OpenAI Agents](https://github.com/openai/openai-agents-python) and others to generate speech, clone voices, transcribe audio, and more.
 
@@ -78,9 +79,17 @@ cp .env.example .env
 # Edit .env and add your API key
 ```
 
-4. Install the server in Claude Desktop: `mcp install elevenlabs_mcp/server.py`
+4. Run the tests to make sure everything is working:
 
-5. Debug and test locally with MCP Inspector: `mcp dev elevenlabs_mcp/server.py`
+```bash
+./test.sh
+# Or with options
+./test.sh --verbose --fail-fast
+```
+
+5. Install the server in Claude Desktop: `mcp install elevenlabs_mcp/server.py`
+
+6. Debug and test locally with MCP Inspector: `mcp dev elevenlabs_mcp/server.py`
 
 ## Requirements
 
