@@ -235,7 +235,7 @@ def list_voices() -> list[McpVoice]:
 
 @mcp.tool(
     description="""
-    Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category."
+    Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category.
 
     Args:
         search: Search term to filter voices by. Searches in name, description, labels and category.
