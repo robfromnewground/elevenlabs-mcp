@@ -226,19 +226,6 @@ def text_to_sound_effects(
     )
 
 
-@mcp.tool(description="List all available voices")
-def list_voices() -> list[McpVoice]:
-    """List all available voices.
-    Returns:
-        A formatted list of available voices with their IDs and names
-    """
-    response = client.voices.get_all()
-    return [
-        McpVoice(id=voice.voice_id, name=voice.name, category=voice.category)
-        for voice in response.voices
-    ]
-
-
 @mcp.tool(
     description="""
     Search for voices by search term. Returns all voices if no search term is provided. Searches in name, description, labels and category.
