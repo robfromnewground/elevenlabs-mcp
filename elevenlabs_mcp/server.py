@@ -70,6 +70,9 @@ mcp = FastMCP("ElevenLabs")
         speed (float, optional): Speed of the generated audio. Controls the speed of the generated speech. Values range from 0.7 to 1.2, with 1.0 being the default speed. Lower values create slower, more deliberate speech while higher values produce faster-paced speech. Extreme values can impact the quality of the generated speech. Range is 0.7 to 1.2.
         output_directory (str, optional): Directory where files should be saved.
             Defaults to $HOME/Desktop if not provided.
+
+    Returns:
+        Text content with the path to the output file and name of the voice used.
     """
 )
 def text_to_speech(
@@ -143,6 +146,9 @@ def text_to_speech(
         return_transcript_to_client_directly: Whether to return the transcript to the client directly.
         output_directory: Directory where files should be saved.
             Defaults to $HOME/Desktop if not provided.
+
+    Returns:
+        TextContent containing the transcription. If save_transcript_to_file is True, the transcription will be saved to a file in the output directory.
     """
 )
 def speech_to_text(
@@ -629,6 +635,9 @@ def create_voice_from_preview(
         agent_id: The ID of the agent that will handle the call
         agent_phone_number_id: The ID of the phone number to use for the call
         to_number: The phone number to call (E.164 format: +1xxxxxxxxxx)
+
+    Returns:
+        TextContent containing information about the call
     """
 )
 def make_outbound_call(
