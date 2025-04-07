@@ -1,7 +1,7 @@
 [project]
 name = "elevenlabs-mcp"
 version = "0.1.8"
-description = "Eleven Labs MCP Server"
+description = "ElevenLabs MCP Server"
 authors = [
     { name = "Jacek Duszenko", email = "jacek@elevenlabs.io" },
     { name = "Paul Asjes", email = "paul.asjes@elevenlabs.io" },
