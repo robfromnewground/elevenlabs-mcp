@@ -1,2 +1,3 @@
+#!/bin/bash
 rm -rf dist/ build/ *.egg-info/
-python -m build
+uv build

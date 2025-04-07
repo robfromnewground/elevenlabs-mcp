@@ -29,7 +29,7 @@ def test_make_output_file():
     tool = "test"
     text = "hello world"
     output_path = Path("/tmp")
-    result = make_output_file(tool, text, output_path)
+    result = make_output_file(tool, text, output_path, "mp3")
     assert result.name.startswith("test_hello")
     assert result.suffix == ".mp3"
 
@@ -61,15 +61,15 @@ def test_find_similar_filenames():
 def test_try_find_similar_files():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
-        test_file = temp_path / "test_file.txt"
-        similar_file = temp_path / "test_file_2.txt"
+        test_file = temp_path / "test_file.mp3"
+        similar_file = temp_path / "test_file_2.mp3"
         different_file = temp_path / "different.txt"
 
         test_file.touch()
         similar_file.touch()
         different_file.touch()
 
-        results = try_find_similar_files("test_file.txt", temp_path)
+        results = try_find_similar_files(str(test_file), temp_path)
         assert len(results) > 0
         assert any(str(similar_file) in str(r) for r in results)
 

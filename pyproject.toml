@@ -1,14 +1,15 @@
 [project]
 name = "elevenlabs-mcp"
-version = "0.1.4"
+version = "0.1.5"
 description = "Eleven Labs MCP Server"
 authors = [
-    {name = "Jacek Duszenko", email = "jacek@elevenlabs.io"},
-    {name = "Paul Asjes", email = "paul.asjes@elevenlabs.io"},
-
+    { name = "Jacek Duszenko", email = "jacek@elevenlabs.io" },
+    { name = "Paul Asjes", email = "paul.asjes@elevenlabs.io" },
+    { name = "Louis Jordan", email = "louis@elevenlabs.io" },
+    { name = "Luke Harries", email = "luke@elevenlabs.io" },
 ]
 readme = "README.md"
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -17,7 +18,13 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-keywords = ["elevenlabs", "mcp", "text-to-speech", "speech-to-text", "voice-cloning"]
+keywords = [
+    "elevenlabs",
+    "mcp",
+    "text-to-speech",
+    "speech-to-text",
+    "voice-cloning",
+]
 requires-python = ">=3.11"
 dependencies = [
     "mcp[cli]>=1.6.0",
@@ -30,7 +37,7 @@ dependencies = [
     "fuzzywuzzy==0.18.0",
     "python-Levenshtein>=0.25.0",
     "sounddevice==0.5.1",
-    "soundfile==0.13.1"
+    "soundfile==0.13.1",
 ]
 
 [project.optional-dependencies]
@@ -41,6 +48,7 @@ dev = [
     "pytest==8.0.0",
     "pytest-cov==4.1.0",
     "twine==6.1.0",
+    "build>=1.0.3",
 ]
 
 [build-system]

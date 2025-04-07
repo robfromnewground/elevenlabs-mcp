@@ -12,3 +12,4 @@
 dist/
 elevenlabs_mcp.egg-info/
 .coverage
+coverage.xml
