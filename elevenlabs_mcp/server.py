@@ -626,6 +626,7 @@ def create_voice_from_preview(
         text=f"Success. Voice created: {voice.name} with ID:{voice.voice_id}",
     )
 
+
 @mcp.tool(
     description="""Make an outbound call via Twilio using an ElevenLabs agent.
 
@@ -655,9 +656,9 @@ def make_outbound_call(
     message = response.get("message", "Call initiated successfully")
 
     return TextContent(
-        type="text",
-        text=f"Outbound call initiated: {message}. Call SID: {call_sid}"
+        type="text", text=f"Outbound call initiated: {message}. Call SID: {call_sid}"
     )
+
 
 @mcp.tool(description="List all phone numbers associated with the ElevenLabs account")
 def list_phone_numbers() -> TextContent:
@@ -696,5 +697,11 @@ def play_audio(input_file_path: str) -> TextContent:
     return TextContent(type="text", text=f"Successfully played audio file: {file_path}")
 
 
-if __name__ == "__main__":
+def main():
+    print("Starting MCP server")
+    """Run the MCP server"""
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()

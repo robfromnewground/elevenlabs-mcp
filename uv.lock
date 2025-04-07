@@ -304,7 +304,7 @@ wheels = [
 
 [[package]]
 name = "elevenlabs-mcp"
-version = "0.1.5"
+version = "0.1.8"
 source = { editable = "." }
 dependencies = [
     { name = "elevenlabs" },
