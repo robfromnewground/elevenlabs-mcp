@@ -13,6 +13,8 @@ Official ElevenLabs Model Context Protocol (MCP) server that enables interaction
 3. Install the MCP server in Claude Desktop by running `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}}`.
 4. Restart Claude Desktop.
 
+If you're using Windows, you will have to enable "Developer Mode" in Claude Desktop to use the MCP server. Click "Help" in the hamburger menu in the top left and select "Enable Developer Mode".
+
 ## Other MCP clients
 
 For other clients like Cursor and Windsurf, run `python -m elevenlabs_mcp --api-key={{PUT_YOUR_API_KEY_HERE}} --print` to get the configuration. Paste it into appropriate configuration directory specified by your MCP client.
