@@ -21,7 +21,14 @@ from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.types import TextContent
 from elevenlabs.client import ElevenLabs
-from elevenlabs_mcp.model import McpVoice
+from elevenlabs_mcp.model import (
+    McpVoice,
+    ListConversationsResponse,
+    ConversationDetails,
+    ConversationListItem,
+    TranscriptEntry,
+    ConversationMetadata,
+)
 from elevenlabs_mcp.utils import (
     make_error,
     make_output_path,
@@ -597,8 +604,79 @@ def create_voice_from_preview(
 @mcp.tool(description="Play an audio file. Supports WAV and MP3 formats.")
 def play_audio(input_file_path: str) -> TextContent:
     file_path = handle_input_file(input_file_path)
-    play(open(file_path, "rb").read(), use_ffmpeg=False)
-    return TextContent(type="text", text=f"Successfully played audio file: {file_path}")
+    with file_path.open("rb") as f:
+        audio = f.read()
+    play(audio)
+    return TextContent(type="text", text=f"Playing audio file: {file_path.name}")
+
+
+@mcp.tool(
+    description="List conversations, optionally filtering by agent ID, success status, and controlling pagination."
+)
+def list_conversations(
+    agent_id: str | None = None,
+    call_successful: Literal["success", "failure", "unknown"] | None = None,
+    cursor: str | None = None,
+    page_size: int = 30,
+) -> ListConversationsResponse:
+    """List conversations based on provided filters.
+
+    Args:
+        agent_id: Filter conversations by a specific agent ID.
+        call_successful: Filter conversations by their success status.
+        cursor: Cursor for fetching the next page of results.
+        page_size: Maximum number of conversations to return (1-100, default 30).
+
+    Returns:
+        A response object containing the list of conversations, pagination info.
+    """
+    if not 1 <= page_size <= 100:
+        make_error("page_size must be between 1 and 100.")
+
+    try:
+        response = client.conversational_ai.get_conversations(
+            agent_id=agent_id,
+            call_successful=call_successful,
+            cursor=cursor,
+            page_size=page_size,
+        )
+        return ListConversationsResponse(
+            conversations=[
+                ConversationListItem(**conv.dict()) for conv in response.conversations
+            ],
+            has_more=response.has_more,
+            next_cursor=response.next_cursor,
+        )
+    except Exception as e:
+        make_error(f"Failed to list conversations: {e}")
+
+
+@mcp.tool(description="Get detailed information about a specific conversation, including the transcript.")
+def get_conversation_details(conversation_id: str) -> ConversationDetails:
+    """Get details for a specific conversation by its ID.
+
+    Args:
+        conversation_id: The ID of the conversation to retrieve.
+
+    Returns:
+        A detailed object representing the conversation.
+    """
+    if not conversation_id:
+        make_error("conversation_id is required.")
+
+    try:
+        response = client.conversational_ai.get_conversation(conversation_id=conversation_id)
+        return ConversationDetails(
+            agent_id=response.agent_id,
+            conversation_id=response.conversation_id,
+            status=str(response.status.value) if hasattr(response.status, 'value') else str(response.status), # Handle potential Enum
+            transcript=[
+                TranscriptEntry(**entry.dict()) for entry in response.transcript
+            ],
+            metadata=ConversationMetadata(**response.metadata.dict()),
+        )
+    except Exception as e:
+        make_error(f"Failed to get conversation details for {conversation_id}: {e}")
 
 
 if __name__ == "__main__":
