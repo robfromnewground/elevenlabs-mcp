@@ -63,6 +63,14 @@ mcp = FastMCP("ElevenLabs")
      Args:
         text (str): The text to convert to speech.
         voice_name (str, optional): The name of the voice to use.
+        model_id (str, optional): The model ID to use for speech synthesis. Options include:
+            - eleven_multilingual_v2: High quality multilingual model (29 languages)
+            - eleven_flash_v2_5: Fastest model with ultra-low latency (32 languages)
+            - eleven_turbo_v2_5: Balanced quality and speed (32 languages)
+            - eleven_flash_v2: Fast English-only model
+            - eleven_turbo_v2: Balanced English-only model
+            - eleven_monolingual_v1: Legacy English model
+            Defaults to eleven_multilingual_v2 or environment variable ELEVENLABS_MODEL_ID.
         stability (float, optional): Stability of the generated audio. Determines how stable the voice is and the randomness between each generation. Lower values introduce broader emotional range for the voice. Higher values can result in a monotonous voice with limited emotion. Range is 0 to 1.
         similarity_boost (float, optional): Similarity boost of the generated audio. Determines how closely the AI should adhere to the original voice when attempting to replicate it. Range is 0 to 1.
         style (float, optional): Style of the generated audio. Determines the style exaggeration of the voice. This setting attempts to amplify the style of the original speaker. It does consume additional computational resources and might increase latency if set to anything other than 0. Range is 0 to 1.
@@ -108,6 +116,7 @@ def text_to_speech(
     speed: float = 1.0,
     language: str = "en",
     output_format: str = "mp3_44100_128",
+    model_id: str | None = None,
 ):
     if text == "":
         make_error("Text is required.")
@@ -131,7 +140,8 @@ def text_to_speech(
     output_path = make_output_path(output_directory, base_path)
     output_file_name = make_output_file("tts", text, output_path, "mp3")
 
-    model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
+    if model_id is None:
+        model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
 
     audio_data = client.text_to_speech.convert(
         text=text,
