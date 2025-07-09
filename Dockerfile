@@ -12,7 +12,5 @@ COPY . .
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir .
 
-# Expose any necessary port if needed (the MCP server might use a port, but by default, it likely uses stdio in production configurations)
-
 # Command to run the MCP server
 CMD ["elevenlabs-mcp"]
