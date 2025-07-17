@@ -532,13 +532,18 @@ def add_knowledge_base_to_agent(
         )
 
     agent = client.conversational_ai.agents.get(agent_id=agent_id)
-    agent.conversation_config.agent.prompt.knowledge_base.append(
+
+    knowledge_base_list = agent.conversation_config.agent.prompt.get("knowledge_base", [])
+    knowledge_base_list.append(
         KnowledgeBaseLocator(
             type="file" if file else "url",
             name=knowledge_base_name,
             id=response.id,
         )
     )
+
+    agent.conversation_config.agent.prompt["knowledge_base"] = knowledge_base_list
+
     client.conversational_ai.agents.update(
         agent_id=agent_id, conversation_config=agent.conversation_config
     )
@@ -591,7 +596,7 @@ def get_agent(agent_id: str) -> TextContent:
 
 @mcp.tool(
     description="""Gets conversation with transcript. Returns: conversation details and full transcript. Use when: analyzing completed agent conversations.
-    
+
     Args:
         conversation_id: The unique identifier of the conversation to retrieve, you can get the ids from the list_conversations tool.
     """
@@ -643,7 +648,7 @@ Transcript:
 
 @mcp.tool(
     description="""Lists agent conversations. Returns: conversation list with metadata. Use when: asked about conversation history.
-    
+
     Args:
         agent_id (str, optional): Filter conversations by specific agent ID
         cursor (str, optional): Pagination cursor for retrieving next page of results
@@ -858,7 +863,7 @@ def make_outbound_call(
 ) -> TextContent:
     # Get phone number details to determine provider type
     phone_number = _get_phone_number_by_id(agent_phone_number_id)
-    
+
     if phone_number.provider.lower() == "twilio":
         response = client.conversational_ai.twilio.outbound_call(
             agent_id=agent_id,
