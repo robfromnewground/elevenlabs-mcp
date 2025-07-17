@@ -171,7 +171,7 @@ def text_to_speech(
 
     Args:
         file_path: Path to the audio file to transcribe
-        language_code: ISO 639-3 language code for transcription (default: "eng" for English)
+        language_code: ISO 639-3 language code for transcription. If not provided, the language will be detected automatically.
         diarize: Whether to diarize the audio file. If True, which speaker is currently speaking will be annotated in the transcription.
         save_transcript_to_file: Whether to save the transcript to a file.
         return_transcript_to_client_directly: Whether to return the transcript to the client directly.
@@ -184,7 +184,7 @@ def text_to_speech(
 )
 def speech_to_text(
     input_file_path: str,
-    language_code: str = "eng",
+    language_code: str | None = None,
     diarize: bool = False,
     save_transcript_to_file: bool = True,
     return_transcript_to_client_directly: bool = False,
@@ -585,7 +585,7 @@ def get_agent(agent_id: str) -> TextContent:
 
 @mcp.tool(
     description="""Gets conversation with transcript. Returns: conversation details and full transcript. Use when: analyzing completed agent conversations.
-    
+
     Args:
         conversation_id: The unique identifier of the conversation to retrieve, you can get the ids from the list_conversations tool.
     """
@@ -637,7 +637,7 @@ Transcript:
 
 @mcp.tool(
     description="""Lists agent conversations. Returns: conversation list with metadata. Use when: asked about conversation history.
-    
+
     Args:
         agent_id (str, optional): Filter conversations by specific agent ID
         cursor (str, optional): Pagination cursor for retrieving next page of results
@@ -852,7 +852,7 @@ def make_outbound_call(
 ) -> TextContent:
     # Get phone number details to determine provider type
     phone_number = _get_phone_number_by_id(agent_phone_number_id)
-    
+
     if phone_number.provider.lower() == "twilio":
         response = client.conversational_ai.twilio.outbound_call(
             agent_id=agent_id,
