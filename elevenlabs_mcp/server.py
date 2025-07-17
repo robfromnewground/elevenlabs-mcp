@@ -177,7 +177,7 @@ def text_to_speech(
 
     Args:
         file_path: Path to the audio file to transcribe
-        language_code: ISO 639-3 language code for transcription (default: "eng" for English)
+        language_code: ISO 639-3 language code for transcription. If not provided, the language will be detected automatically.
         diarize: Whether to diarize the audio file. If True, which speaker is currently speaking will be annotated in the transcription.
         save_transcript_to_file: Whether to save the transcript to a file.
         return_transcript_to_client_directly: Whether to return the transcript to the client directly.
@@ -190,7 +190,7 @@ def text_to_speech(
 )
 def speech_to_text(
     input_file_path: str,
-    language_code: str = "eng",
+    language_code: str | None = None,
     diarize: bool = False,
     save_transcript_to_file: bool = True,
     return_transcript_to_client_directly: bool = False,
