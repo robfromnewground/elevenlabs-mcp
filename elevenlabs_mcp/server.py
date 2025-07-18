@@ -143,7 +143,11 @@ def text_to_speech(
     output_file_name = make_output_file("tts", text, output_path, "mp3")
 
     if model_id is None:
-        model_id = "eleven_flash_v2_5" if language in ["hu", "no", "vi"] else "eleven_multilingual_v2"
+        model_id = (
+            "eleven_flash_v2_5"
+            if language in ["hu", "no", "vi"]
+            else "eleven_multilingual_v2"
+        )
 
     audio_data = client.text_to_speech.convert(
         text=text,
@@ -533,7 +537,10 @@ def add_knowledge_base_to_agent(
 
     agent = client.conversational_ai.agents.get(agent_id=agent_id)
 
-    knowledge_base_list = agent.conversation_config.agent.prompt.get("knowledge_base", [])
+    agent_config = agent.conversation_config.agent
+    knowledge_base_list = (
+        agent_config.get("prompt", {}).get("knowledge_base", []) if agent_config else []
+    )
     knowledge_base_list.append(
         KnowledgeBaseLocator(
             type="file" if file else "url",
@@ -542,7 +549,10 @@ def add_knowledge_base_to_agent(
         )
     )
 
-    agent.conversation_config.agent.prompt["knowledge_base"] = knowledge_base_list
+    if agent_config and "prompt" not in agent_config:
+        agent_config["prompt"] = {}
+    if agent_config:
+        agent_config["prompt"]["knowledge_base"] = knowledge_base_list
 
     client.conversational_ai.agents.update(
         agent_id=agent_id, conversation_config=agent.conversation_config
@@ -644,6 +654,8 @@ Transcript:
 
     except Exception as e:
         make_error(f"Failed to fetch conversation: {str(e)}")
+        # satisfies type checker
+        return TextContent(type="text", text="")
 
 
 @mcp.tool(
@@ -655,6 +667,7 @@ Transcript:
         call_start_before_unix (int, optional): Filter conversations that started before this Unix timestamp
         call_start_after_unix (int, optional): Filter conversations that started after this Unix timestamp
         page_size (int, optional): Number of conversations to return per page (1-100, defaults to 30)
+        max_length (int, optional): Maximum character length of the response text (defaults to 10000)
     """
 )
 def list_conversations(
@@ -881,7 +894,9 @@ def make_outbound_call(
     else:
         make_error(f"Unsupported provider type: {phone_number.provider}")
 
-    return TextContent(type="text", text=f"Outbound call initiated via {provider_info}: {response}.")
+    return TextContent(
+        type="text", text=f"Outbound call initiated via {provider_info}: {response}."
+    )
 
 
 @mcp.tool(
