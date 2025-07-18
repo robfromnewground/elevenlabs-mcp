@@ -537,8 +537,9 @@ def add_knowledge_base_to_agent(
 
     agent = client.conversational_ai.agents.get(agent_id=agent_id)
 
-    knowledge_base_list = agent.conversation_config.agent.prompt.get(
-        "knowledge_base", []
+    agent_config = agent.conversation_config.agent
+    knowledge_base_list = (
+        agent_config.get("prompt", {}).get("knowledge_base", []) if agent_config else []
     )
     knowledge_base_list.append(
         KnowledgeBaseLocator(
@@ -548,7 +549,10 @@ def add_knowledge_base_to_agent(
         )
     )
 
-    agent.conversation_config.agent.prompt["knowledge_base"] = knowledge_base_list
+    if agent_config and "prompt" not in agent_config:
+        agent_config["prompt"] = {}
+    if agent_config:
+        agent_config["prompt"]["knowledge_base"] = knowledge_base_list
 
     client.conversational_ai.agents.update(
         agent_id=agent_id, conversation_config=agent.conversation_config
