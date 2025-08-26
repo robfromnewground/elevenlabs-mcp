@@ -1031,11 +1031,50 @@ def main():
     print(f"🎯 Transport: Streamable HTTP (CrewAI compatible)")
     
     try:
-        # Create and run Streamable HTTP app
-        app = mcp.streamable_http_app()
-        
+        # Create and run Streamable HTTP app with health endpoints
+        from fastapi import FastAPI, Response
+        from fastapi.middleware.wsgi import WSGIMiddleware
         import uvicorn
-        uvicorn.run(app, host=host, port=port, log_level="info")
+        
+        # Create FastAPI wrapper for health endpoints
+        health_app = FastAPI(title="ElevenLabs MCP Server", version="0.5.1")
+        
+        # Health endpoint for Railway and monitoring
+        @health_app.get("/health")
+        async def health_check():
+            """Health check endpoint for Railway and monitoring"""
+            return {
+                "status": "healthy",
+                "service": "elevenlabs-mcp-server",
+                "version": "0.5.1",
+                "transport": "streamable-http",
+                "endpoints": {
+                    "mcp": "/mcp",
+                    "health": "/health"
+                }
+            }
+        
+        # Alternative health check at root for simple monitoring
+        @health_app.get("/")
+        async def root_health():
+            """Root endpoint health check"""
+            return {
+                "message": "ElevenLabs MCP Server is running",
+                "mcp_endpoint": "/mcp",
+                "health_endpoint": "/health",
+                "transport": "streamable-http"
+            }
+        
+        # Get the MCP app and mount it
+        mcp_app = mcp.streamable_http_app()
+        
+        # Mount the MCP app at /mcp path
+        health_app.mount("/mcp", mcp_app)
+        
+        print(f"🏥 Health check available at: http://{host}:{port}/health")
+        print(f"🌐 Root info available at: http://{host}:{port}/")
+        
+        uvicorn.run(health_app, host=host, port=port, log_level="info")
     except Exception as e:
         print(f"❌ Failed to start server: {e}")
         sys.exit(1)

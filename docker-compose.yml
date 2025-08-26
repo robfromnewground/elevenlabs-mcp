@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  elevenlabs-mcp:
+    build: .
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # Required: Set your ElevenLabs API key
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      
+      # Optional: Override default settings
+      - ELEVENLABS_MCP_BASE_PATH=/app/output
+      - HOST=0.0.0.0
+      - PORT=3000
+    
+    volumes:
+      # Mount output directory for persistent MP3 files
+      - ./output:/app/output
+      
+      # Development: Mount source code for live reloading (comment out for production)
+      # - ./elevenlabs_mcp:/app/elevenlabs_mcp
+    
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Add nginx proxy for production
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/nginx.conf
+  #   depends_on:
+  #     - elevenlabs-mcp
+  #   restart: unless-stopped
+
+# Create named volume for output files
+volumes:
+  output_data:
