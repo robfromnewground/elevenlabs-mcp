@@ -1008,9 +1008,37 @@ def play_audio(input_file_path: str) -> TextContent:
 
 
 def main():
-    print("Starting MCP server")
-    """Run the MCP server"""
-    mcp.run()
+    """Run the ElevenLabs MCP server with Streamable HTTP transport"""
+    import sys
+    import argparse
+    import os
+    
+    parser = argparse.ArgumentParser(description="ElevenLabs MCP Server - Streamable HTTP")
+    parser.add_argument("--host", default="0.0.0.0", 
+                       help="Host to bind to (default: 0.0.0.0)")
+    parser.add_argument("--port", type=int, default=3000,
+                       help="Port to bind to (default: 3000)")
+    
+    args = parser.parse_args()
+    
+    # Override with environment variables if available (Railway support)
+    host = os.getenv("HOST", args.host)
+    port = int(os.getenv("PORT", args.port))
+    
+    print(f"🚀 Starting ElevenLabs MCP server with Streamable HTTP transport")
+    print(f"🌐 Server running on {host}:{port}")
+    print(f"📡 MCP endpoint: http://{host}:{port}/mcp")
+    print(f"🎯 Transport: Streamable HTTP (CrewAI compatible)")
+    
+    try:
+        # Create and run Streamable HTTP app
+        app = mcp.streamable_http_app()
+        
+        import uvicorn
+        uvicorn.run(app, host=host, port=port, log_level="info")
+    except Exception as e:
+        print(f"❌ Failed to start server: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

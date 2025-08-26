@@ -14,6 +14,46 @@
   Official ElevenLabs <a href="https://github.com/modelcontextprotocol">Model Context Protocol (MCP)</a> server that enables interaction with powerful Text to Speech and audio processing APIs. This server allows MCP clients like <a href="https://www.anthropic.com/claude">Claude Desktop</a>, <a href="https://www.cursor.so">Cursor</a>, <a href="https://codeium.com/windsurf">Windsurf</a>, <a href="https://github.com/openai/openai-agents-python">OpenAI Agents</a> and others to generate speech, clone voices, transcribe audio, and more.
 </p>
 
+## 🚀 NEW: Streamable HTTP Support for CrewAI Integration
+
+This ElevenLabs MCP server now supports **Streamable HTTP transport** for seamless integration with CrewAI and other modern AI agent frameworks!
+
+### Quick CrewAI Integration
+
+```python
+from crewai_tools import MCPServerAdapter
+
+elevenlabs_params = {
+    "url": "https://your-railway-app.railway.app/mcp",
+    "transport": "streamable-http"
+}
+
+with MCPServerAdapter(elevenlabs_params) as elevenlabs_tools:
+    # All 22 ElevenLabs tools available to your agents!
+    voice_agent = Agent(
+        role="Voice Content Creator",
+        tools=elevenlabs_tools,
+        verbose=True
+    )
+```
+
+### Transport Options
+
+- **stdio** (default): For Claude Desktop integration
+- **http**: For CrewAI, web clients, and HTTP-based integrations
+
+```bash
+# Start HTTP server for CrewAI
+python -m elevenlabs_mcp --transport http --host 0.0.0.0 --port 3000
+
+# Traditional stdio mode
+python -m elevenlabs_mcp
+```
+
+📖 **[Complete CrewAI Integration Guide](CREWAI_INTEGRATION.md)**
+
+---
+
 ## Quickstart with Claude Desktop
 
 1. Get your API key from [ElevenLabs](https://elevenlabs.io/app/settings/api-keys). There is a free tier with 10k credits per month.

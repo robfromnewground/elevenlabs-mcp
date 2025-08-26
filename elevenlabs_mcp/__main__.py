@@ -75,7 +75,35 @@ if __name__ == "__main__":
         type=Path,
         help="Custom path to Claude config directory",
     )
+    parser.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=3000,
+        help="Port to bind to (default: 3000)",
+    )
+    parser.add_argument(
+        "--server",
+        action="store_true",
+        help="Start the Streamable HTTP server directly",
+    )
     args = parser.parse_args()
+
+    # Handle server mode
+    if args.server:
+        print(f"🚀 Starting ElevenLabs MCP server in Streamable HTTP mode")
+        print(f"🌐 Server will run on {args.host}:{args.port}")
+        print("Use Ctrl+C to stop the server")
+        from elevenlabs_mcp.server import main
+        import sys
+        # Override sys.argv to pass arguments
+        sys.argv = [sys.argv[0], "--host", args.host, "--port", str(args.port)]
+        main()
+        sys.exit(0)
 
     config = generate_config(args.api_key)
 
