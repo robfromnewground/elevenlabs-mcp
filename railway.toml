@@ -13,3 +13,4 @@ PYTHONPATH = "/app"
 
 [variables]
 HOST = "0.0.0.0"
+RAILWAY_RUN_UID = "1"
