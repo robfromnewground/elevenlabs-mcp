@@ -35,7 +35,12 @@ def make_output_path(
 ) -> Path:
     output_path = None
     if output_directory is None:
-        output_path = Path.home() / "Desktop"
+        if base_path:
+            output_path = Path(os.path.expanduser(base_path))
+        else:
+            # Configurable fallback directory
+            fallback_dir = os.getenv("ELEVENLABS_FALLBACK_DIR", str(Path.home() / "Desktop"))
+            output_path = Path(os.path.expanduser(fallback_dir))
     elif not os.path.isabs(output_directory) and base_path:
         output_path = Path(os.path.expanduser(base_path)) / Path(output_directory)
     else:
@@ -242,19 +247,23 @@ def generate_file_url(filename: str, base_url: str | None = None) -> str:
     return f"{base_url}/files/{safe_filename}"
 
 
-def cleanup_old_files(directory: Path, max_age_hours: int = 24) -> int:
+def cleanup_old_files(directory: Path, max_age_hours: int | None = None) -> int:
     """
     Clean up files older than max_age_hours from the specified directory.
     
     Args:
         directory: Directory to clean up
-        max_age_hours: Maximum age in hours before files are deleted
+        max_age_hours: Maximum age in hours before files are deleted (configurable via env)
     
     Returns:
         int: Number of files deleted
     """
     if not directory.exists():
         return 0
+    
+    # Use configurable cleanup age
+    if max_age_hours is None:
+        max_age_hours = int(os.getenv("ELEVENLABS_CLEANUP_AGE_HOURS", "24"))
     
     import time
     current_time = time.time()

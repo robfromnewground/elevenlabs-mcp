@@ -1084,17 +1084,6 @@ def main():
         
         return FileResponse(file_path)
     
-    async def cleanup_task():
-        """Background task to clean up old files"""
-        while True:
-            try:
-                deleted = cleanup_old_files(output_path, max_age_hours=24)
-                if deleted > 0:
-                    print(f"🧹 Cleaned up {deleted} old files")
-            except Exception as e:
-                print(f"⚠️ Cleanup task error: {e}")
-            await asyncio.sleep(3600)  # Run every hour
-    
     try:
         import uvicorn
         
@@ -1120,13 +1109,31 @@ def main():
             allow_headers=["*"],
         )
         
+        # Add startup and shutdown events for background tasks
+        @app.on_event("startup")
+        async def startup_event():
+            """Start background cleanup task when app starts"""
+            async def cleanup_task():
+                """Background task to clean up old files"""
+                while True:
+                    try:
+                        deleted = cleanup_old_files(output_path)
+                        if deleted > 0:
+                            print(f"🧹 Cleaned up {deleted} old files")
+                    except Exception as e:
+                        print(f"⚠️ Cleanup task error: {e}")
+                    # Configurable cleanup interval
+                    interval_seconds = int(os.getenv("ELEVENLABS_CLEANUP_INTERVAL_SECONDS", "3600"))
+                    await asyncio.sleep(interval_seconds)
+            
+            # Start the cleanup task in the background
+            asyncio.create_task(cleanup_task())
+            print("🧹 Background cleanup task started")
+        
         print(f"🚀 Running MCP server with file serving capabilities")
         print(f"📡 MCP endpoint: http://{host}:{port}/mcp")
         print(f"📁 File serving: http://{host}:{port}/files/")
         print(f"❤️ Health check: http://{host}:{port}/health")
-        
-        # Start cleanup task in background
-        asyncio.create_task(cleanup_task())
         
         uvicorn.run(app, host=host, port=port, log_level="info")
     except Exception as e:
