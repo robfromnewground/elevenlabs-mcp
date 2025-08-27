@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "python -m elevenlabs_mcp --server --host 0.0.0.0 --port $PORT"
+startCommand = "python -m elevenlabs_mcp --server --host 0.0.0.0"
 healthcheckPath = "/mcp"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
