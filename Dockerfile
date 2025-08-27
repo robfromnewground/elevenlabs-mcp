@@ -30,8 +30,8 @@ RUN chown -R appuser:appuser /app
 # Create output and shared directories with proper permissions
 RUN mkdir -p /app/output /app/shared && chown -R appuser:appuser /app/output /app/shared
 
-# Switch to non-root user
-USER appuser
+# Switch to non-root user (commented out for Railway compatibility)
+# USER appuser
 
 # Expose port (configurable via environment)
 EXPOSE 3000
