@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 from datetime import datetime
 from fuzzywuzzy import fuzz
+import urllib.parse
 
 
 class ElevenLabsMcpError(Exception):
@@ -22,11 +23,11 @@ def is_file_writeable(path: Path) -> bool:
 
 def make_output_file(
     tool: str, text: str, output_path: Path, extension: str, full_id: bool = False
-) -> Path:
+) -> str:
+    """Generate output filename (returns just the filename, not full path)"""
     id = text if full_id else text[:5]
-
     output_file_name = f"{tool}_{id.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{extension}"
-    return output_path / output_file_name
+    return output_file_name
 
 
 def make_output_path(
@@ -211,3 +212,63 @@ def parse_conversation_transcript(transcript_entries, max_length: int = 50000):
         )
 
     return transcript, False
+
+
+def generate_file_url(filename: str, base_url: str | None = None) -> str:
+    """
+    Generate HTTP URL for serving a file.
+    
+    Args:
+        filename: The filename to serve
+        base_url: Base URL of the server (defaults to environment variable)
+    
+    Returns:
+        str: Complete HTTP URL for the file
+    """
+    if base_url is None:
+        # Check for Railway public URL first
+        railway_url = os.getenv("RAILWAY_PUBLIC_DOMAIN")
+        if railway_url:
+            base_url = f"https://{railway_url}"
+        else:
+            # Fallback to host/port
+            host = os.getenv("HOST", "localhost")
+            port = os.getenv("PORT", "3000")
+            protocol = "https" if host != "localhost" and host != "127.0.0.1" else "http"
+            base_url = f"{protocol}://{host}:{port}"
+    
+    # Ensure filename is URL-safe
+    safe_filename = urllib.parse.quote(filename)
+    return f"{base_url}/files/{safe_filename}"
+
+
+def cleanup_old_files(directory: Path, max_age_hours: int = 24) -> int:
+    """
+    Clean up files older than max_age_hours from the specified directory.
+    
+    Args:
+        directory: Directory to clean up
+        max_age_hours: Maximum age in hours before files are deleted
+    
+    Returns:
+        int: Number of files deleted
+    """
+    if not directory.exists():
+        return 0
+    
+    import time
+    current_time = time.time()
+    max_age_seconds = max_age_hours * 3600
+    deleted_count = 0
+    
+    for file_path in directory.iterdir():
+        if file_path.is_file():
+            file_age = current_time - file_path.stat().st_mtime
+            if file_age > max_age_seconds:
+                try:
+                    file_path.unlink()
+                    deleted_count += 1
+                except OSError:
+                    pass  # Failed to delete, skip
+    
+    return deleted_count

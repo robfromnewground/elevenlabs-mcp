@@ -29,6 +29,8 @@ from elevenlabs_mcp.utils import (
     handle_input_file,
     parse_conversation_transcript,
     handle_large_text,
+    generate_file_url,
+    cleanup_old_files,
 )
 from elevenlabs_mcp.convai import create_conversation_config, create_platform_settings
 from elevenlabs.types.knowledge_base_locator import KnowledgeBaseLocator
@@ -38,7 +40,7 @@ from elevenlabs_mcp import __version__
 
 load_dotenv()
 api_key = os.getenv("ELEVENLABS_API_KEY")
-base_path = os.getenv("ELEVENLABS_MCP_BASE_PATH")
+base_path = os.getenv("ELEVENLABS_MCP_BASE_PATH") or os.getenv("SHARED_AUDIO_PATH") or "/app/shared"
 DEFAULT_VOICE_ID = os.getenv("ELEVENLABS_DEFAULT_VOICE_ID", "cgSgspJ2msm6clMCkdW9")
 
 if not api_key:
@@ -165,12 +167,16 @@ def text_to_speech(
     audio_bytes = b"".join(audio_data)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path / output_file_name, "wb") as f:
+    file_path = output_path / output_file_name
+    with open(file_path, "wb") as f:
         f.write(audio_bytes)
 
+    # Generate HTTP URL for the file
+    file_url = generate_file_url(output_file_name)
+    
     return TextContent(
         type="text",
-        text=f"Success. File saved as: {output_path / output_file_name}. Voice used: {voice.name if voice else DEFAULT_VOICE_ID}",
+        text=f"Success. Audio file available at: {file_url}. Voice used: {voice.name if voice else DEFAULT_VOICE_ID}",
     )
 
 
@@ -281,12 +287,16 @@ def text_to_sound_effects(
     )
     audio_bytes = b"".join(audio_data)
 
-    with open(output_path / output_file_name, "wb") as f:
+    file_path = output_path / output_file_name
+    with open(file_path, "wb") as f:
         f.write(audio_bytes)
 
+    # Generate HTTP URL for the file
+    file_url = generate_file_url(output_file_name)
+    
     return TextContent(
         type="text",
-        text=f"Success. File saved as: {output_path / output_file_name}",
+        text=f"Success. Audio file available at: {file_url}",
     )
 
 
@@ -389,12 +399,16 @@ def isolate_audio(
     )
     audio_bytes = b"".join(audio_data)
 
-    with open(output_path / output_file_name, "wb") as f:
+    file_path = output_path / output_file_name
+    with open(file_path, "wb") as f:
         f.write(audio_bytes)
 
+    # Generate HTTP URL for the file
+    file_url = generate_file_url(output_file_name)
+    
     return TextContent(
         type="text",
-        text=f"Success. File saved as: {output_path / output_file_name}",
+        text=f"Success. Audio file available at: {file_url}",
     )
 
 
@@ -769,11 +783,15 @@ def speech_to_speech(
 
     audio_bytes = b"".join(audio_data)
 
-    with open(output_path / output_file_name, "wb") as f:
+    file_path = output_path / output_file_name
+    with open(file_path, "wb") as f:
         f.write(audio_bytes)
 
+    # Generate HTTP URL for the file
+    file_url = generate_file_url(output_file_name)
+    
     return TextContent(
-        type="text", text=f"Success. File saved as: {output_path / output_file_name}"
+        type="text", text=f"Success. Audio file available at: {file_url}"
     )
 
 
@@ -804,22 +822,26 @@ def text_to_voice(
     output_path = make_output_path(output_directory, base_path)
 
     generated_voice_ids = []
-    output_file_paths = []
+    file_urls = []
 
     for preview in previews.previews:
         output_file_name = make_output_file(
             "voice_design", preview.generated_voice_id, output_path, "mp3", full_id=True
         )
-        output_file_paths.append(str(output_file_name))
+        file_path = output_path / output_file_name
         generated_voice_ids.append(preview.generated_voice_id)
         audio_bytes = base64.b64decode(preview.audio_base_64)
 
-        with open(output_path / output_file_name, "wb") as f:
+        with open(file_path, "wb") as f:
             f.write(audio_bytes)
+        
+        # Generate HTTP URL for each file
+        file_url = generate_file_url(output_file_name)
+        file_urls.append(file_url)
 
     return TextContent(
         type="text",
-        text=f"Success. Files saved at: {', '.join(output_file_paths)}. Generated voice IDs are: {', '.join(generated_voice_ids)}",
+        text=f"Success. Audio files available at: {', '.join(file_urls)}. Generated voice IDs are: {', '.join(generated_voice_ids)}",
     )
 
 
@@ -1008,10 +1030,17 @@ def play_audio(input_file_path: str) -> TextContent:
 
 
 def main():
-    """Run the ElevenLabs MCP server with Streamable HTTP transport"""
+    """Run the ElevenLabs MCP server with Streamable HTTP transport and file serving"""
     import sys
     import argparse
     import os
+    from starlette.applications import Starlette
+    from starlette.responses import FileResponse, Response
+    from starlette.routing import Route, Mount
+    from starlette.middleware.cors import CORSMiddleware
+    from starlette.staticfiles import StaticFiles
+    import asyncio
+    from pathlib import Path
     
     parser = argparse.ArgumentParser(description="ElevenLabs MCP Server - Streamable HTTP")
     parser.add_argument("--host", default="0.0.0.0", 
@@ -1025,22 +1054,81 @@ def main():
     host = os.getenv("HOST", args.host)
     port = int(os.getenv("PORT", args.port))
     
+    # Set up output directory
+    output_path = make_output_path(None, base_path)
+    output_path.mkdir(parents=True, exist_ok=True)
+    
     print(f"🚀 Starting ElevenLabs MCP server with Streamable HTTP transport")
     print(f"🌐 Server running on {host}:{port}")
     print(f"📡 MCP endpoint: http://{host}:{port}/mcp")
+    print(f"📁 File serving: http://{host}:{port}/files/")
     print(f"🎯 Transport: Streamable HTTP (CrewAI compatible)")
+    
+    async def health_check(request):
+        """Health check endpoint"""
+        return Response("ElevenLabs MCP Server is running", status_code=200)
+    
+    async def serve_file(request):
+        """Serve generated audio files"""
+        filename = request.path_params["filename"]
+        file_path = output_path / filename
+        
+        if not file_path.exists() or not file_path.is_file():
+            return Response("File not found", status_code=404)
+        
+        # Security: ensure file is within output directory
+        try:
+            file_path.resolve().relative_to(output_path.resolve())
+        except ValueError:
+            return Response("Access denied", status_code=403)
+        
+        return FileResponse(file_path)
+    
+    async def cleanup_task():
+        """Background task to clean up old files"""
+        while True:
+            try:
+                deleted = cleanup_old_files(output_path, max_age_hours=24)
+                if deleted > 0:
+                    print(f"🧹 Cleaned up {deleted} old files")
+            except Exception as e:
+                print(f"⚠️ Cleanup task error: {e}")
+            await asyncio.sleep(3600)  # Run every hour
     
     try:
         import uvicorn
         
-        # Just run the MCP app directly for now - health endpoints can be added separately
+        # Create the main Starlette app with file serving
         mcp_app = mcp.streamable_http_app()
         
-        # For now, let's keep it simple and add health via reverse proxy or separate service
-        print(f"🚀 Running pure MCP server (health endpoints can be added via reverse proxy)")
-        print(f"📡 MCP endpoint working at: http://{host}:{port}/mcp")
+        # Create main app with routes
+        routes = [
+            Route("/", health_check),
+            Route("/health", health_check),
+            Route("/files/{filename:path}", serve_file),
+            Mount("/mcp", mcp_app),
+        ]
         
-        uvicorn.run(mcp_app, host=host, port=port, log_level="info")
+        app = Starlette(routes=routes)
+        
+        # Add CORS middleware for frontend access
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],  # In production, restrict this
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+        
+        print(f"🚀 Running MCP server with file serving capabilities")
+        print(f"📡 MCP endpoint: http://{host}:{port}/mcp")
+        print(f"📁 File serving: http://{host}:{port}/files/")
+        print(f"❤️ Health check: http://{host}:{port}/health")
+        
+        # Start cleanup task in background
+        asyncio.create_task(cleanup_task())
+        
+        uvicorn.run(app, host=host, port=port, log_level="info")
     except Exception as e:
         print(f"❌ Failed to start server: {e}")
         sys.exit(1)

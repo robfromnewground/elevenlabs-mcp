@@ -10,13 +10,13 @@ services:
       - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
       
       # Optional: Override default settings
-      - ELEVENLABS_MCP_BASE_PATH=/app/output
+      - ELEVENLABS_MCP_BASE_PATH=/app/shared
       - HOST=0.0.0.0
       - PORT=3000
     
     volumes:
-      # Mount output directory for persistent MP3 files
-      - ./output:/app/output
+      # Mount shared directory for persistent MP3 files
+      - ./output:/app/shared
       
       # Development: Mount source code for live reloading (comment out for production)
       # - ./elevenlabs_mcp:/app/elevenlabs_mcp

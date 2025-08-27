@@ -27,8 +27,8 @@ COPY . .
 # Change ownership to non-root user
 RUN chown -R appuser:appuser /app
 
-# Create output directory with proper permissions
-RUN mkdir -p /app/output && chown -R appuser:appuser /app/output
+# Create output and shared directories with proper permissions
+RUN mkdir -p /app/output /app/shared && chown -R appuser:appuser /app/output /app/shared
 
 # Switch to non-root user
 USER appuser
@@ -41,7 +41,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -s http://localhost:3000/mcp > /dev/null || exit 1
 
 # Use environment variables for configuration
-ENV ELEVENLABS_MCP_BASE_PATH=/app/output
+ENV ELEVENLABS_MCP_BASE_PATH=/app/shared
 ENV HOST=0.0.0.0
 ENV PORT=3000
 

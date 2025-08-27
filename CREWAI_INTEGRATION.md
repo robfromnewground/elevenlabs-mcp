@@ -51,9 +51,15 @@ with MCPServerAdapter(elevenlabs_params) as elevenlabs_tools:
    - `ELEVENLABS_API_KEY`: Your ElevenLabs API key
    - `PORT`: Automatically set by Railway (default: 3000)
 
-3. **Access your server:**
-   - Health: `https://your-app.railway.app/mcp/`
-   - CrewAI integration: Use the full Railway URL
+3. **Configure Shared Volume (if using):**
+   - Volume name: `shared-audio-storage`
+   - Mount path: `/app/shared`
+   - This enables persistent file storage across deployments
+
+4. **Access your server:**
+   - Health: `https://your-app.railway.app/health`
+   - MCP: `https://your-app.railway.app/mcp`
+   - Files: `https://your-app.railway.app/files/filename.mp3`
 
 ### Local Development
 
@@ -75,11 +81,11 @@ python -m elevenlabs_mcp --transport http --host 0.0.0.0 --port 3000
 # Stdio mode (default - for Claude Desktop)
 python -m elevenlabs_mcp
 
-# HTTP mode (for CrewAI and web clients)
-python -m elevenlabs_mcp --transport http --host 0.0.0.0 --port 3000
+# HTTP mode with file serving (for CrewAI and web clients)
+python -m elevenlabs_mcp --server --host 0.0.0.0 --port 3000
 
 # Custom host/port
-python -m elevenlabs_mcp --transport http --host 127.0.0.1 --port 8080
+python -m elevenlabs_mcp --server --host 127.0.0.1 --port 8080
 ```
 
 ### Environment Variables
@@ -87,18 +93,20 @@ python -m elevenlabs_mcp --transport http --host 127.0.0.1 --port 8080
 - `ELEVENLABS_API_KEY`: Required ElevenLabs API key
 - `HOST`: Override default host (0.0.0.0)
 - `PORT`: Override default port (3000)
+- `ELEVENLABS_MCP_BASE_PATH`: Override output directory for generated files (defaults to /app/shared in production)
+- `SHARED_AUDIO_PATH`: Alternative name for shared volume path (Railway compatible)
 
 ## 🎯 Available Tools
 
 Your CrewAI agents will have access to **22 powerful ElevenLabs tools**:
 
 ### Text-to-Speech
-- `text_to_speech`: Convert text to natural speech
-- `text_to_sound_effects`: Generate AI sound effects
+- `text_to_speech`: Convert text to natural speech (returns HTTP URL for direct playback)
+- `text_to_sound_effects`: Generate AI sound effects (returns HTTP URL for direct playback)
 
 ### Speech Processing
 - `speech_to_text`: Transcribe audio to text
-- `speech_to_speech`: Transform voice while preserving emotion
+- `speech_to_speech`: Transform voice while preserving emotion (returns HTTP URL for direct playback)
 
 ### Voice Management
 - `search_voices`: Find voices in the ElevenLabs library
@@ -118,12 +126,15 @@ And 10 more advanced tools for professional audio workflows!
 
 ## 📡 Protocol Details
 
-### MCP Streamable HTTP Endpoint
+### MCP Streamable HTTP Endpoints
 
-The server exposes the standard MCP protocol at `/mcp` using:
-- **Protocol**: JSON-RPC 2.0 over HTTP
+The server exposes multiple endpoints:
+- **MCP Protocol**: `/mcp` - Standard MCP JSON-RPC 2.0 over HTTP
+- **File Serving**: `/files/{filename}` - Direct audio file access for frontend playback
+- **Health Check**: `/health` - Service health monitoring
 - **Transport**: Streamable HTTP (bidirectional)
-- **Format**: Full MCP specification compliance
+- **CORS**: Enabled for frontend access
+- **Auto-cleanup**: Files older than 24 hours are automatically removed
 
 ### Example MCP Client Usage
 
@@ -144,14 +155,31 @@ async def test_mcp_client():
         tools = await session.list_tools()
         print(f"Available tools: {len(tools)}")
         
-        # Call text-to-speech
+        # Call text-to-speech - returns HTTP URL for direct access
         result = await session.call_tool("text_to_speech", {
             "text": "Hello from MCP client!",
             "voice_name": "Adam"
         })
-        print(result)
+        print(result)  # Contains HTTP URL like: http://host:port/files/tts_Hello_20231201_120000.mp3
 
 asyncio.run(test_mcp_client())
+```
+
+### Direct File Serving Flow
+
+```python
+# 🎯 New Direct Serving Architecture
+# 1. CrewAI calls ElevenLabs MCP tool
+crew_result = agent.use_tool("text_to_speech", {"text": "Hello world!"})
+
+# 2. ElevenLabs MCP generates audio and returns URL (not file path)
+# Result: "Success. Audio file available at: http://railway-app.railway.app/files/tts_Hello_20231201_120000.mp3"
+
+# 3. CrewAI backend extracts URL and returns to frontend
+audio_url = extract_url_from_result(crew_result)
+
+# 4. Frontend plays audio directly from ElevenLabs service
+# <audio src="http://railway-app.railway.app/files/tts_Hello_20231201_120000.mp3" controls></audio>
 ```
 
 ## 🔒 Security Notes
