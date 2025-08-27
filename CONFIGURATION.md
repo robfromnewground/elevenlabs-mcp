@@ -127,7 +127,28 @@ Most configuration changes require a server restart. The exception is:
 - Restrict file paths to safe directories
 - Consider setting conservative cleanup intervals for sensitive data
 
+## 📦 Dependencies
+
+### **Core Dependencies**
+- `mcp[cli]>=1.12.0` - Model Context Protocol framework
+- `fastmcp>=0.4.1` - FastMCP tools and HTTP server (required for production)
+- `elevenlabs>=2.7.1` - ElevenLabs API client
+- `fastapi==0.109.2` - Web framework (includes compatible Starlette)
+- `uvicorn==0.27.1` - ASGI server
+
+### **Development Dependencies**
+Development tools are separate and won't conflict with other projects:
+- `pytest` - Testing framework
+- `ruff` - Linting and formatting
+- `pre-commit` - Git hooks
+
 ## 🛠️ Troubleshooting
+
+### **FastMCP Import Errors**
+If you get `ModuleNotFoundError: No module named 'fastmcp'`:
+1. FastMCP is now a main dependency (not dev-only)
+2. Reinstall: `pip install -e .` or `pip install elevenlabs-mcp`
+3. For other projects: FastMCP conflicts are resolved
 
 ### **Files Not Saving to Expected Directory**
 1. Check `ELEVENLABS_MCP_BASE_PATH` is set correctly

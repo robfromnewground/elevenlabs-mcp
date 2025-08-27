@@ -1087,18 +1087,14 @@ def main():
     try:
         import uvicorn
         
-        # Create the main Starlette app with file serving
-        mcp_app = mcp.streamable_http_app()
+        # Get the MCP app and add our routes to it
+        app = mcp.streamable_http_app()
         
-        # Create main app with routes
-        routes = [
-            Route("/", health_check),
+        # Add our additional routes to the MCP app
+        app.router.routes.extend([
             Route("/health", health_check),
             Route("/files/{filename:path}", serve_file),
-            Mount("/mcp", mcp_app),
-        ]
-        
-        app = Starlette(routes=routes)
+        ])
         
         # Add CORS middleware for frontend access
         app.add_middleware(
